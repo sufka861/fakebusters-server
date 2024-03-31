@@ -7,6 +7,9 @@ import path from 'path';
 import fs from 'fs';
 import s3Router from './routes/s3Router';
 // import errorHandler from './utils/errorHandler';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app: Express = express();
 

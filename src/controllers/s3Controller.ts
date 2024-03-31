@@ -9,20 +9,20 @@ const uploadFileToS3: RequestHandler = async (req, res): Promise<void> => {
         return;
     }
 
+    if (!req.file || !req.file.buffer) {
+        res.status(400).send('No file uploaded.');
+        return;
+    }
+
     try {
-        const response = await axios.put(process.env.S3_POSTS_BUCKET_URL, req.rawBody, {
+        await axios.put(process.env.S3_POSTS_BUCKET_URL, req.file.buffer, {
             headers: {
                 'Content-Type': 'text/csv',
             },
-            responseType: 'json',
         });
-
-        res.status(200).json({
-            message: 'File uploaded successfully',
-            data: response.data,
-        });
+        res.status(200).json({ message: 'File uploaded successfully to S3.' });
     } catch (error) {
-        console.error(error);
+        // console.error('Error uploading to S3:', error.message);
         res.status(500).send('Failed to upload file to S3.');
     }
 };

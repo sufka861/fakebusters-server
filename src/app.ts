@@ -5,8 +5,8 @@ import logger from 'morgan';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import sampleRoutes from './routes/sampleRoutes';
-import errorHandler from './utils/errorHandler';
+import s3Router from './routes/s3Router';
+// import errorHandler from './utils/errorHandler';
 
 const app: Express = express();
 
@@ -20,9 +20,9 @@ app.use(
 );
 app.use(cors());
 
-app.use('/api', sampleRoutes); 
+app.use('/api/s3/', s3Router); 
 
-app.use(errorHandler);
+// app.use(errorHandler);
 
-export default app;
+export default app ;
 

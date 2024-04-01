@@ -6,7 +6,8 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import s3Router from './routes/s3Router';
-import webhookRouter from './routes/webHookRouter';
+import webhookRouter from './routes/webhookRouter';
+import sseRouter from './routes/sseRouter';
 // import errorHandler from './utils/errorHandler';
 import dotenv from 'dotenv';
 
@@ -25,7 +26,8 @@ app.use(
 app.use(cors());
 
 app.use('/api/s3/', s3Router); 
-app.use('/api/webhook', webhookRouter);
+app.use('/api/webhook/', webhookRouter);
+app.use('/api/sse/', sseRouter);
 
 // app.use(errorHandler);
 

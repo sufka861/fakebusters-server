@@ -1,6 +1,6 @@
 // src/routes/webhookRouter.ts
 import express from 'express';
-import { handleLPAResults } from '../controllers/webhookController';
+import handleLPAResults from '../controllers/webhookController';
 
 const webhookRouter = express.Router();
 

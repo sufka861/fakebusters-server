@@ -1,10 +1,22 @@
 // src/controllers/webhookController.ts
 import { Request, RequestHandler, Response } from 'express';
 
-export const handleLPAResults: RequestHandler = async (req: Request, res: Response): Promise<void> => {
-    const results = req.body;
+const handleLPAResults: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const { requestId, data } = req.body; // TODO: Lambda includes requestId in the payload
 
-    // validate the request here (e.g., check a signature header)
-    console.log("Received Lambda results: ", results);
-    res.status(200).send('Received');
+    // Send data to the client associated with requestId
+    const client = getClient(requestId);
+    if (client) {
+      console.log(data);
+      // TODO: Implement client.write(`data: ${JSON.stringify(data)}\n\n`);
+    }
+  
+    res.status(200).end();
 };
+
+function getClient(requestId: string ): string {
+  // TODO: implement: getClient(requestId);
+  console.log(`getClient with requestId: ${requestId}`);
+  return requestId;
+} 
+export default handleLPAResults;

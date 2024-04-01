@@ -1,7 +1,6 @@
 // s3Route.ts
 import express from 'express';
 import { uploadFileToS3 } from '../controllers/s3Controller';
-// import rawBodyBuffer from '../middleware/rawBodyBuffer';
 import multer from 'multer';
 
 const upload = multer({ storage: multer.memoryStorage() });

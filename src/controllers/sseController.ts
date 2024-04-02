@@ -11,7 +11,7 @@ const handleSSE: RequestHandler = async (
   });
 
   const requestId = req.query.requestId as string; // Ensure requestId is always of type string
-  // TODO: implement: addClient(requestId, res);
+  // TODO: implement addClient to store the client to later be sent the result: addClient(requestId, res);
 
   req.on("close", () => removeClient(requestId, res));
 };

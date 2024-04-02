@@ -11,7 +11,7 @@ const handleLPAResults: RequestHandler = async (
   const client = getClient(requestId);
   if (client) {
     console.log(data);
-    // TODO: Implement client.write(`data: ${JSON.stringify(data)}\n\n`);
+    // TODO: Implement send data to client via sse- client.write(`data: ${JSON.stringify(data)}\n\n`);
   }
 
   res.status(200).end();

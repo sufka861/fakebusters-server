@@ -1,7 +1,15 @@
 // s3Controller.ts
 import { RequestHandler } from "express";
-import axios from "axios";
 import { v4 as uuid } from "uuid";
+import axios from "axios";
+
+import { exec } from "child_process";
+import { writeFile } from "fs/promises";
+import fs from 'fs';
+import path from 'path';
+
+
+
 
 const uploadFileToS3: RequestHandler = async (req, res): Promise<void> => {
   if (!process.env.S3_POSTS_BUCKET_URL) {
@@ -36,4 +44,86 @@ const uploadFileToS3: RequestHandler = async (req, res): Promise<void> => {
   }
 };
 
-export { uploadFileToS3 };
+
+const handlePreprocessing: RequestHandler = async (req, res) => {
+  if (!req.file) {
+    console.error("No file uploaded.");
+    res.status(400).send("No file uploaded.");
+    return;
+  }
+    const tempDir = path.join('C:', 'temp');
+
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  const filePath = path.join(tempDir, req.file.originalname);
+  await writeFile(filePath, req.file.buffer);
+
+  const firstScriptPath = 'src/utils/python/Preprocessing.py';
+  const secondScriptPath = 'src/utils/python/AverageFrequency.py';
+
+  runPythonScript(firstScriptPath, [filePath])
+    .then(output => {
+      console.log('First Python script output:', output);
+      const intermediateFilePath = 'src/utils/python/data/shenkar_frequency.csv'; 
+      return uploadFileDirectlyToS3(intermediateFilePath)
+        .then(() => intermediateFilePath);
+    })
+    .then(intermediateFilePath => {
+      return runPythonScript(secondScriptPath, [intermediateFilePath]);
+    })
+    .then(output => {  // Capturing the output of the second Python script
+      res.setHeader('Content-Type', 'application/json');
+      res.send(output);
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Error processing the file.');
+    });
+}
+
+
+function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
+    exec(`python ${scriptPath} ${args.join(' ')}`, { env }, (error, stdout, stderr) => {
+      if (error) {
+        reject(error.message);
+        return;
+      }
+      if (stderr) {
+        reject(stderr);
+        return;
+      }
+      resolve(stdout);
+    });
+  });
+}
+
+
+const uploadFileDirectlyToS3 = async (filePath: string): Promise<void> => {
+
+  if (!process.env.S3_POSTS_BUCKET_URL || !fs.existsSync(filePath)) {
+    console.error("S3 bucket URL is not configured or file does not exist.");
+    return;
+  }
+
+  const requestId: string = uuid();
+  // const fileContent = fs.readFileSync(filePath);
+  // const URL: string = `${process.env.S3_POSTS_BUCKET_URL}${requestId}.csv`;
+
+  try {
+    // await axios.put(URL, fileContent, {
+    //   headers: {
+    //     "Content-Type": "text/csv",
+    //   },
+    // });
+    console.log("File uploaded successfully to S3, requestId:", requestId);
+  } catch (error) {
+    console.error("Failed to upload file to S3:", error);
+  }
+};
+
+
+export { uploadFileToS3,handlePreprocessing };

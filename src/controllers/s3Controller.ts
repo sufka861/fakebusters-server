@@ -9,8 +9,6 @@ import fs from 'fs';
 import path from 'path';
 
 
-
-
 const uploadFileToS3: RequestHandler = async (req, res): Promise<void> => {
   if (!process.env.S3_POSTS_BUCKET_URL) {
     res.status(500).send("S3 bucket URL is not configured.");
@@ -51,29 +49,26 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
     res.status(400).send("No file uploaded.");
     return;
   }
-    const tempDir = path.join('C:', 'temp');
+  const tempDir = path.join('C:', 'temp');
 
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
   }
-
+  const fileName = req.file.originalname.replace(/\.csv$/, '')
   const filePath = path.join(tempDir, req.file.originalname);
   await writeFile(filePath, req.file.buffer);
 
-  const firstScriptPath = 'src/utils/python/Preprocessing.py';
-  const secondScriptPath = 'src/utils/python/AverageFrequency.py';
+  const scriptPath = 'src/python/Preprocessing.py';
 
-  runPythonScript(firstScriptPath, [filePath])
-    .then(output => {
-      console.log('First Python script output:', output);
-      const intermediateFilePath = 'src/utils/python/data/shenkar_frequency.csv'; 
-      return uploadFileDirectlyToS3(intermediateFilePath)
-        .then(() => intermediateFilePath);
-    })
-    .then(intermediateFilePath => {
-      return runPythonScript(secondScriptPath, [intermediateFilePath]);
-    })
-    .then(output => {  // Capturing the output of the second Python script
+  runPythonScript(scriptPath, [filePath])
+    .then(async (output) => {
+      console.log('Python script output:', output);
+      const intermediateFilePath = `src/python/data/${fileName}_frequency.csv`;
+      
+      // Upload the CSV file to S3
+      await uploadFileDirectlyToS3(intermediateFilePath);
+
+      // Send the Python script's output to the client
       res.setHeader('Content-Type', 'application/json');
       res.send(output);
     })
@@ -81,8 +76,7 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
       console.error(err);
       res.status(500).send('Error processing the file.');
     });
-}
-
+};
 
 function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -96,11 +90,10 @@ function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
         reject(stderr);
         return;
       }
-      resolve(stdout);
+      resolve(stdout.trim());
     });
   });
 }
-
 
 const uploadFileDirectlyToS3 = async (filePath: string): Promise<void> => {
 

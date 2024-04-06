@@ -62,7 +62,6 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
 
   runPythonScript(scriptPath, [filePath])
     .then(async (output) => {
-      console.log('Python script output:', output);
       const intermediateFilePath = `src/python/data/${fileName}_frequency.csv`;
       
       // Upload the CSV file to S3

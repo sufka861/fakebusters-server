@@ -1,0 +1,66 @@
+
+[
+    {
+        "id": 1,
+        "name": "suf",
+        "email": "suf@example.com",
+        "analyses": [
+            {
+                "id": 1,
+                "projectName": "Text Analysis Project",
+                "preqFileName": "text",
+                "threshold": 0.6,
+                "signature": 600,
+                "typeOfAnalysis": 1,
+                "word": "",
+                "freq": "",
+                "account": "",
+                "initiaAuthorsCount": "",
+                "initialPostsCount": "",
+                "FrequencyFile":"",
+                "resultsLPA": [],
+                "sockpuppetData": []
+                
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Roni",
+        "email": "roni@example.com",
+        "analyses": [
+            {   
+                "id": 3,
+                "projectName": "Content Mining",
+                "preqFileName": "text",
+                "threshold": 0.8,
+                "signature": 500,
+                "typeOfAnalysis": 1,
+                "word": "",
+                "freq": "",
+                "account": "",
+                "initiaAuthorsCount": "",
+                "initialPostsCount": "",
+                "FrequencyFile":"",
+                "resultsLPA": [],
+                "sockpuppetData": []
+            },
+            {   
+                "id": 2,
+                "projectName": "Another Project",
+                "preqFileName": "text",
+                "threshold": 0.8,
+                "signature": 500,
+                "typeOfAnalysis": 2,
+                "word": "",
+                "freq": "",
+                "account": "",
+                "initiaAuthorsCount": "",
+                "initialPostsCount": "",
+                "FrequencyFile":"",
+                "resultsLPA": [],
+                "sockpuppetData": []
+            }
+        ]
+    }
+]

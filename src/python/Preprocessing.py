@@ -53,7 +53,8 @@ def process_and_analyze(file_path):
                 word = feature_names[word_index]
                 word_frequency_data.append((author, word, count))
 
-    output_file_path = os.path.join(output_dir, os.path.basename(file_path).replace('.csv', '_frequency.csv'))
+    output_file_name = os.path.basename(file_path).replace('.csv', '_frequency.csv')
+    output_file_path = os.path.join(output_dir, output_file_name)
     word_frequency_df = pd.DataFrame(word_frequency_data, columns=['document', 'element', 'frequency_in_document'])
     word_frequency_df.to_csv(output_file_path, index=False, mode='w', header=True)
 
@@ -75,7 +76,8 @@ def process_and_analyze(file_path):
         'data': data,
         'word': total_elements,
         'freq': total_rows,
-        'account': total_documents
+        'account': total_documents,
+        'output_file_name': output_file_name 
     }
 
     result_json = json.dumps(result_dict, ensure_ascii=False, indent=4)

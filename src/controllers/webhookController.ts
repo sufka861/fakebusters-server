@@ -30,7 +30,6 @@ const handleLPAResults: RequestHandler = async (
         res.end();
     }
 
-
     setTimeout(sendEvent, 1000); 
 };
 

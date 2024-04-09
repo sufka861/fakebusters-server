@@ -53,7 +53,7 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
       fs.mkdirSync(tempDir, { recursive: true });
   }
 
-  const fileName = req.file.originalname.replace(/\.csv$/, '');
+  const fileName = req.file.originalname
   const filePath = path.join(tempDir, req.file.originalname);
   await writeFile(filePath, req.file.buffer);
 
@@ -61,9 +61,9 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
 
   try {
       const output = await runPythonScript(scriptPath, [filePath]);
-      const intermediateFilePath = `src/python/data/${fileName}_frequency.csv`;
+      const intermediateFilePath = `src/python/data/${fileName}`;
 
-      await uploadFileDirectlyToS3(intermediateFilePath);
+      await uploadFileDirectlyToS3(intermediateFilePath, fileName);
       res.setHeader('Content-Type', 'application/json');
       res.send(output);
   } catch (err) {
@@ -92,15 +92,14 @@ function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
 }
 
 
-const uploadFileDirectlyToS3 = async (filePath: string): Promise<void> => {
+const uploadFileDirectlyToS3 = async (filePath: string, fileName: string): Promise<void> => {
   if (!process.env.S3_POSTS_BUCKET_URL || !fs.existsSync(filePath)) {
     console.error("S3 bucket URL is not configured or file does not exist.");
     return;
   }
 
-  const requestId: string = uuid();
-  // const fileContent = fs.readFileSync(filePath);
-  // const URL: string = `${process.env.S3_POSTS_BUCKET_URL}${requestId}.csv`;
+//   const fileContent = fs.readFileSync(filePath);
+//   const URL: string = `${process.env.S3_POSTS_BUCKET_URL}${fileName}`;
 
   try {
     // await axios.put(URL, fileContent, {
@@ -108,7 +107,7 @@ const uploadFileDirectlyToS3 = async (filePath: string): Promise<void> => {
     //     "Content-Type": "text/csv",
     //   },
     // });
-    console.log("File uploaded successfully to S3, requestId:", requestId);
+    console.log( `File uploaded ${fileName}successfully to S3, requestId:`, fileName);
   } catch (error) {
     console.error("Failed to upload file to S3:", error);
   }

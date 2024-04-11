@@ -14,6 +14,38 @@ const handleLPAResults: RequestHandler = async (
     // TODO: Implement send data to client via sse- client.write(`data: ${JSON.stringify(data)}\n\n`);
   }
 
+  const sendEvent = () => {
+    const job = requestId[requestId];
+    if (job) {
+        res.write(`data: ${JSON.stringify(job)}\n\n`);
+
+        if (job.status === 'completed') {
+  
+            res.end();
+            return;
+        }
+    } else {
+ 
+        res.write('data: {"error": "Job not found"}\n\n');
+        res.end();
+    }
+
+    setTimeout(sendEvent, 1000); 
+};
+
+sendEvent();
+
+
+
+
+
+
+
+
+
+
+
+
   res.status(200).end();
 };
 
@@ -23,3 +55,4 @@ function getClient(requestId: string): string {
   return requestId;
 }
 export default handleLPAResults;
+

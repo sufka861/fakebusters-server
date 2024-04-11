@@ -13,7 +13,7 @@ const s3 = new AWS.S3();
 interface CsvRecord {
     'Corpus 1': string;
     'Corpus 2': string;
-    value: number;
+    Value: string;
 }
 
 interface SockpuppetDetectionChartProps {
@@ -34,11 +34,12 @@ const calculateIdentityLikelihood = (records: CsvRecord[]): SockpuppetDetectionC
     };
 
     records.forEach(record => {
-        if (record.value < 0.25) {
+        const value = parseFloat(record.Value);
+        if (value < 0.25) {
             likelihoodCategories.HighLikelihood++;
-        } else if (record.value < 0.5) {
+        } else if (value < 0.5) {
             likelihoodCategories.MediumLikelihood++;
-        } else if (record.value < 0.75) {
+        } else if (value < 0.75) {
             likelihoodCategories.LowLikelihood++;
         } else {
             likelihoodCategories.VeryLowLikelihood++;
@@ -62,8 +63,7 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
         return;
     }
 
-
-    const bucketName = process.env.S3_NAME_BUCKET;
+    const bucketName = process.env.S3_NAME_BUCKET ;
     if (!bucketName) {
         res.write('data: {"error": "Bucket name is undefined"}\n\n');
         res.end();
@@ -75,7 +75,7 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
         s3.headObject(params, (err, metadata) => {
             if (err) {
                 if (err.code === 'NotFound') {
-                    res.write(`data: ${JSON.stringify({ time: new Date().toISOString(), message: 'File still processing...' })}\n\n`);
+                    res.write(`data: ${JSON.stringify({ time: new Date().toISOString(), message: 'File not found or still processing...' })}\n\n`);
                 } else {
                     clearInterval(checkFileExists);
                     res.write(`data: ${JSON.stringify({ time: new Date().toISOString(), error: 'Error accessing file: ' + err.message })}\n\n`);
@@ -105,7 +105,7 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
                     });
             }
         });
-    }, 10000); // Check every 10 seconds
+    }, 25000); // Check every 2.5 seconds
 
     req.on("close", () => {
         clearInterval(checkFileExists);

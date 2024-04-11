@@ -26,6 +26,7 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
+    "aws-sdk": "^2.1598.0",
     "axios": "^1.6.8",
     "cors": "^2.8.5",
     "csv-parser": "^3.0.0",

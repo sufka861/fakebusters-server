@@ -5,7 +5,9 @@ import { exec } from 'child_process';
 import { writeFile } from 'fs/promises';
 import axios from 'axios';
 import { v4 as uuid } from 'uuid';
+import AWS from 'aws-sdk';
 
+/* only for tests */
 const uploadFileToS3: RequestHandler = async (req, res) => {
     if (!process.env.S3_POSTS_BUCKET_URL) {
         res.status(500).send("S3 bucket URL is not configured.");
@@ -53,9 +55,14 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
 
     const requestId = uuid();
     const originalFileNameWithoutExtension = path.parse(req.file.originalname).name;
-    
     const fileName = `${requestId}-${originalFileNameWithoutExtension}`;
     const filePath = path.join(tempDir, `${fileName}.csv`);
+    const { threshold, signature } = req.body;
+    const metadata = {
+        'signature': signature,
+        'threshold': threshold
+      };
+  
     await writeFile(filePath, req.file.buffer);
 
     const scriptPath = 'src/python/Preprocessing.py';
@@ -65,7 +72,7 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
         const newFileName = `${fileName}_frequency.csv`;
         const intermediateFilePath = path.join(tempDir, newFileName);
         console.log(intermediateFilePath)
-        await uploadFileDirectlyToS3(intermediateFilePath, newFileName);
+        await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata );
         fs.unlinkSync(filePath);
 
         res.setHeader('Content-Type', 'application/json');
@@ -75,8 +82,6 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
         res.status(500).send('Error processing the file.');
     }
 };
-
-
 
 function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -97,8 +102,8 @@ function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
   });
 }
 
-
-const uploadFileDirectlyToS3 = async (filePath: string, fileName: string): Promise<void> => {
+/*
+const uploadFileDirectlyToS3 = async (filePath: string, fileName: string ): Promise<void> => {
   if (!process.env.S3_POSTS_BUCKET_URL || !fs.existsSync(filePath)) {
     console.error("S3 bucket URL is not configured or file does not exist.");
     return;
@@ -110,7 +115,7 @@ const uploadFileDirectlyToS3 = async (filePath: string, fileName: string): Promi
   try {
     await axios.put(URL, fileContent, {
       headers: {
-        "Content-Type": "text/csv",
+        "Content-Type": "text/csv"
       },
     });
     console.log( `File uploaded ${fileName}successfully to S3, requestId:`, fileName);
@@ -118,5 +123,35 @@ const uploadFileDirectlyToS3 = async (filePath: string, fileName: string): Promi
     console.error("Failed to upload file to S3:", error);
   }
 };
+*/
 
-export { uploadFileToS3, handlePreprocessing };
+
+const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
+    if (!fs.existsSync(filePath)) {
+      console.error("File does not exist.");
+      return;
+    }
+    const s3 = new AWS.S3();
+
+      const tempDir = "src/python/data";
+      if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+      }
+  
+      const fileContent = fs.readFileSync(filePath);
+      const params = {
+        Bucket: 'testbucket-lpa',
+        Key: fileName,
+        Body: fileContent,
+        Metadata: metadata
+      };
+      s3.putObject(params, (err, data) => {
+        if (err) {
+            console.error('Error uploading object:', err);
+        } else {
+            console.log('Object uploaded successfully:', data);
+        }
+    });
+    }
+
+export { handlePreprocessing, uploadFileToS3 };

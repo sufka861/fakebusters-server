@@ -66,11 +66,11 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
     }
 
     const combinedFileName = originalFileNames.join('+');
-    const newFileName = `${uuid()}_${combinedFileName}.csv`; 
+    const newFileName = `${combinedFileName}_${uuid()}.csv`; 
     const scriptPath = 'src/python/Preprocessing.py';
 
     try {
-        const output = await runPythonScript(scriptPath, filePaths);
+        const output = await runPythonScript(scriptPath, filePaths,newFileName);
         const intermediateFilePath = path.join(tempDir, newFileName);
         console.log(intermediateFilePath);
         // await uploadFileDirectlyToS3(intermediateFilePath, newFileName);
@@ -85,9 +85,9 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
 };
 
 
-function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
+function runPythonScript(scriptPath: string, args: string[], outputFileName: string): Promise<string> {
   return new Promise((resolve, reject) => {
-      const command = `python ${scriptPath} ${args.join(' ')}`;
+      const command = `python ${scriptPath} ${outputFileName} ${args.join(' ')}`;
       const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
 
       exec(command, { env }, (error, stdout, stderr) => {

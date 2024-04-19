@@ -96,7 +96,6 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
                             resultsLPA: records,
                             sockpuppetData: sockpuppetData.data
                         });
-                        console.log(result);
                         res.write(`data: ${result}\n\n`);
                         res.end();
                     })

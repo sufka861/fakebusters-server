@@ -11,19 +11,14 @@ interface EmailDetails {
     recipientEmail: string;
 }
 
-interface User {
-    name: string;
-    email: string;
-    projectName: string;
-}
-
 const sendEmail = async (emailDetails: EmailDetails, templateData: object): Promise<void> => {
     const transporter = nodemailer.createTransport(smtpTransport({
         service: 'gmail',
         host: 'smtp.gmail.com',
+        secure: false,
         auth: {
-            user: "fakebusters.shenkar@gmail.com",
-            pass: process.env.PASS,
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_PASS,
         },
     }));
 
@@ -44,16 +39,15 @@ const sendEmail = async (emailDetails: EmailDetails, templateData: object): Prom
 };
 
 // user: User
-const notifyUserByEmail = async (user: User): Promise<void> => {
+const notifyUserByEmail = async ( name: string, userEmail: string): Promise<void> => {
     const emailDetails: EmailDetails = {
         templatePath: '/src/utils/sendEmail/sendEmail.ejs',
         subject: 'Fakebusters Analysis Result',
-        recipientEmail: user.email,
+        recipientEmail: userEmail,
     };
 
     const templateData = {
-        userName: user.name,
-        projectName: user.projectName,
+        userName: name
     };
     await sendEmail(emailDetails, templateData);
 };

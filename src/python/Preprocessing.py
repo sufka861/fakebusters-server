@@ -86,7 +86,6 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python script.py <output_file_name> <file_path1> <file_path2> ...")
         sys.exit(1)
-    print("start processing")
     output_file_name = sys.argv[1]
     file_paths = sys.argv[2:]
     analysis_results = process_and_analyze(file_paths, output_file_name)

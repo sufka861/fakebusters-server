@@ -5,10 +5,12 @@ import { exec } from 'child_process';
 import { writeFile } from 'fs/promises';
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
+import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
 
           
 const handlePreprocessing: RequestHandler = async (req, res) => {
-    console.log("handlePreprocessing")
+
+
     if (!req.files || req.files.length === 0) {
         res.status(400).send("No files uploaded.");
         return;
@@ -56,7 +58,6 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
 
         res.setHeader('Content-Type', 'application/json');
         res.send(output);
-        console.log(output)
     } catch (err) {
         filePaths.forEach(file => fs.unlinkSync(file));
         res.status(500).send('Error processing the files.');
@@ -112,4 +113,16 @@ const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata
     });
     }
 
-export { handlePreprocessing };
+//Test for sending an email, add to the function of receiving the results after a database has been built
+    const handleMail: RequestHandler = async (req, res) => {
+    try{
+        const user={name: "racheli", email: "dkracheli135@gmail.com"}
+        notifyUserByEmail(user.name, user.email);
+        res.status(200).send("yesss");
+    } catch (err) {
+        res.status(500).send(err);
+    }
+    }
+
+
+export { handlePreprocessing, handleMail};

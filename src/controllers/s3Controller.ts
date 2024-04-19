@@ -8,6 +8,7 @@ import AWS from 'aws-sdk';
 
           
 const handlePreprocessing: RequestHandler = async (req, res) => {
+    console.log("handlePreprocessing")
     if (!req.files || req.files.length === 0) {
         res.status(400).send("No files uploaded.");
         return;

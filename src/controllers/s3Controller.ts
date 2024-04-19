@@ -5,7 +5,9 @@ import { exec } from 'child_process';
 import { writeFile } from 'fs/promises';
 import axios from 'axios';
 import { v4 as uuid } from 'uuid';
+import AWS from 'aws-sdk';
 
+/* only for tests */
 const uploadFileToS3: RequestHandler = async (req, res) => {
     if (!process.env.S3_POSTS_BUCKET_URL) {
         res.status(500).send("S3 bucket URL is not configured.");
@@ -36,8 +38,13 @@ const uploadFileToS3: RequestHandler = async (req, res) => {
 };
 
 const handlePreprocessing: RequestHandler = async (req, res) => {
-    if (!req.files || req.files.length === 0) {
-        res.status(400).send("No files uploaded.");
+    if (!req.file) {
+        res.status(400).send("No file uploaded.");
+        return;
+    }
+
+    if (req.file.mimetype !== "text/csv") {
+        res.status(400).send("File must be a CSV.");
         return;
     }
 
@@ -46,44 +53,35 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
         fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const filesData = req.files as Express.Multer.File[];
-    const filePaths = [];
-    const originalFileNames = [];
-    for (const file of filesData) {
-        if (file.mimetype !== "text/csv") {
-            res.status(400).send("All files must be CSVs.");
-            return;
-        }
+    const requestId = uuid();
+    const originalFileNameWithoutExtension = path.parse(req.file.originalname).name;
+    const fileName = `${requestId}-${originalFileNameWithoutExtension}`;
+    const filePath = path.join(tempDir, `${fileName}.csv`);
+    const { threshold, signature } = req.body;
+    const metadata = {
+        'signature': signature,
+        'threshold': threshold
+      };
+  
+    await writeFile(filePath, req.file.buffer);
 
-        const originalFileNameWithoutExtension = path.parse(file.originalname).name;
-        originalFileNames.push(originalFileNameWithoutExtension);
-        
-        const requestId = uuid();
-        const fileName = `${requestId}-${originalFileNameWithoutExtension}.csv`;
-        const filePath = path.join(tempDir, fileName);
-        await writeFile(filePath, file.buffer);
-        filePaths.push(filePath);
-    }
-
-    const combinedFileName = originalFileNames.join('+');
-    const newFileName = `${uuid()}_${combinedFileName}.csv`; 
     const scriptPath = 'src/python/Preprocessing.py';
 
     try {
-        const output = await runPythonScript(scriptPath, filePaths);
+        const output = await runPythonScript(scriptPath, [filePath]);
+        const newFileName = `${fileName}_frequency.csv`;
         const intermediateFilePath = path.join(tempDir, newFileName);
-        console.log(intermediateFilePath);
-        // await uploadFileDirectlyToS3(intermediateFilePath, newFileName);
-        filePaths.forEach(file => fs.unlinkSync(file));  
+        console.log(intermediateFilePath)
+        await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata );
+        fs.unlinkSync(filePath);
 
         res.setHeader('Content-Type', 'application/json');
         res.send(output);
     } catch (err) {
-        filePaths.forEach(file => fs.unlinkSync(file));
-        res.status(500).send('Error processing the files.');
+        fs.unlinkSync(filePath);
+        res.status(500).send('Error processing the file.');
     }
 };
-
 
 function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -104,26 +102,56 @@ function runPythonScript(scriptPath: string, args: string[]): Promise<string> {
   });
 }
 
+/*
+const uploadFileDirectlyToS3 = async (filePath: string, fileName: string ): Promise<void> => {
+  if (!process.env.S3_POSTS_BUCKET_URL || !fs.existsSync(filePath)) {
+    console.error("S3 bucket URL is not configured or file does not exist.");
+    return;
+  }
 
-// const uploadFileDirectlyToS3 = async (filePath: string, fileName: string): Promise<void> => {
-//   if (!process.env.S3_POSTS_BUCKET_URL || !fs.existsSync(filePath)) {
-//     console.error("S3 bucket URL is not configured or file does not exist.");
-//     return;
-//   }
+  const fileContent = fs.readFileSync(filePath);
+  const URL: string = `${process.env.S3_POSTS_BUCKET_URL}${fileName}`;
 
-//   const fileContent = fs.readFileSync(filePath);
-//   const URL: string = `${process.env.S3_POSTS_BUCKET_URL}${fileName}`;
+  try {
+    await axios.put(URL, fileContent, {
+      headers: {
+        "Content-Type": "text/csv"
+      },
+    });
+    console.log( `File uploaded ${fileName}successfully to S3, requestId:`, fileName);
+  } catch (error) {
+    console.error("Failed to upload file to S3:", error);
+  }
+};
+*/
 
-//   try {
-//     await axios.put(URL, fileContent, {
-//       headers: {
-//         "Content-Type": "text/csv",
-//       },
-//     });
-//     console.log( `File uploaded ${fileName}successfully to S3, requestId:`, fileName);
-//   } catch (error) {
-//     console.error("Failed to upload file to S3:", error);
-//   }
-// };
 
-export { uploadFileToS3, handlePreprocessing };
+const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
+    if (!fs.existsSync(filePath)) {
+      console.error("File does not exist.");
+      return;
+    }
+    const s3 = new AWS.S3();
+
+      const tempDir = "src/python/data";
+      if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+      }
+  
+      const fileContent = fs.readFileSync(filePath);
+      const params = {
+        Bucket: 'testbucket-lpa',
+        Key: fileName,
+        Body: fileContent,
+        Metadata: metadata
+      };
+      s3.putObject(params, (err, data) => {
+        if (err) {
+            console.error('Error uploading object:', err);
+        } else {
+            console.log('Object uploaded successfully:', data);
+        }
+    });
+    }
+
+export { handlePreprocessing, uploadFileToS3 };

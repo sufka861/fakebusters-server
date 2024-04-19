@@ -7,9 +7,15 @@ import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
 
 
+
 const handlePreprocessing: RequestHandler = async (req, res) => {
-    if (!req.files || req.files.length === 0) {
-        res.status(400).send("No files uploaded.");
+    if (!req.file) {
+        res.status(400).send("No file uploaded.");
+        return;
+    }
+
+    if (req.file.mimetype !== "text/csv") {
+        res.status(400).send("File must be a CSV.");
         return;
     }
 
@@ -18,10 +24,11 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
         fs.mkdirSync(tempDir, { recursive: true });
     }
 
+
     const filesData = req.files as Express.Multer.File[];
     const filePaths = [];
     const originalFileNames = [];
-    const { threshold, signature } = req.body;
+ const { threshold, signature } = req.body;
     const metadata = {
         'signature': signature,
         'threshold': threshold
@@ -56,13 +63,15 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.send(output);
     } catch (err) {
-        filePaths.forEach(file => fs.unlinkSync(file));
-        res.status(500).send('Error processing the files.');
+        fs.unlinkSync(filePath);
+        res.status(500).send('Error processing the file.');
     }
 };
 
 
+
 function runPythonScript(scriptPath: string, args: string[], outputFileName: string): Promise<string> {
+
   return new Promise((resolve, reject) => {
       const command = `python ${scriptPath} ${outputFileName} ${args.join(' ')}`;
       const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
@@ -80,6 +89,7 @@ function runPythonScript(scriptPath: string, args: string[], outputFileName: str
       });
   });
 }
+
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
     if (!fs.existsSync(filePath)) {
@@ -111,3 +121,4 @@ const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata
 
 
 export { uploadFileToS3Direct, handlePreprocessing };
+

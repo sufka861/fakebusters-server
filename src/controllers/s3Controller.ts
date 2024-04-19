@@ -56,6 +56,7 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
 
         res.setHeader('Content-Type', 'application/json');
         res.send(output);
+        console.log(output)
     } catch (err) {
         filePaths.forEach(file => fs.unlinkSync(file));
         res.status(500).send('Error processing the files.');

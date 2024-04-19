@@ -71,6 +71,7 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
     }
 
     const checkFileExists = setInterval(() => {
+        console.log(fileName)
         const params = { Bucket: bucketName, Key: fileName };
         s3.headObject(params, (err, metadata) => {
             if (err) {

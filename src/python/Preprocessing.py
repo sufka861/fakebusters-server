@@ -7,10 +7,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 
-# Get the directory where the script is located
-script_dir = os.path.dirname(os.path.realpath(__file__))
-stopwords_file = os.path.join(script_dir, 'data/hebrew_stop_words.txt')
-output_dir = os.path.join(script_dir, 'data')
 
 def preprocess_text(text, stop_words):
     text = re.sub(r'https?\S+|@\w+|\d+', '', text)
@@ -18,21 +14,25 @@ def preprocess_text(text, stop_words):
     filtered_words = [word for word in words if word not in stop_words]
     return ' '.join(filtered_words)
 
-def process_and_analyze(file_path):
+def process_and_analyze(file_paths, output_file_name):
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    stopwords_file = os.path.join(script_dir, 'data/hebrew_stop_words.txt')
+    output_dir = os.path.join(script_dir, 'data')
+
     with open(stopwords_file, 'r', encoding='utf-8') as f:
         hebrew_stop_words = set(f.read().split())
-
     english_stop_words = set(stopwords.words('english'))
     stop_words = hebrew_stop_words.union(english_stop_words)
 
-    df = pd.read_csv(file_path)
-    initial_authors_count = df['author_username'].nunique()
-    initial_posts_count = len(df)
+    df = pd.concat([pd.read_csv(file) for file in file_paths])
 
     required_columns = {'author_username', 'text'}
     if not required_columns.issubset(df.columns):
-        print(f"Error: The file {file_path} does not contain the required columns.")
+        print("Error: One or more files do not contain the required columns.")
         sys.exit(1)
+
+    initial_authors_count = df['author_username'].nunique()
+    initial_posts_count = len(df)
 
     df_selected = df[['author_username', 'text']]
     posts_count_by_author = df_selected.groupby('author_username').size()
@@ -53,7 +53,6 @@ def process_and_analyze(file_path):
                 word = feature_names[word_index]
                 word_frequency_data.append((author, word, count))
 
-    output_file_name = os.path.basename(file_path).replace('.csv', '_frequency.csv')
     output_file_path = os.path.join(output_dir, output_file_name)
     word_frequency_df = pd.DataFrame(word_frequency_data, columns=['document', 'element', 'frequency_in_document'])
     word_frequency_df.to_csv(output_file_path, index=False, mode='w', header=True)
@@ -81,14 +80,14 @@ def process_and_analyze(file_path):
     }
 
     result_json = json.dumps(result_dict, ensure_ascii=False, indent=4)
-
     return result_json
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <file_path>")
+    if len(sys.argv) < 3:
+        print("Usage: python script.py <output_file_name> <file_path1> <file_path2> ...")
         sys.exit(1)
-
-    file_path = sys.argv[1]
-    analysis_results = process_and_analyze(file_path)
+    print("start processing")
+    output_file_name = sys.argv[1]
+    file_paths = sys.argv[2:]
+    analysis_results = process_and_analyze(file_paths, output_file_name)
     print(analysis_results)

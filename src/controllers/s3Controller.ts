@@ -60,12 +60,14 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
 };
 
 
-const runPythonScript = (scriptPath: string, args: string[], outputFileName: string): Promise<string> => {
+function runPythonScript(outputFileName: string, args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
+        const baseDir = process.env.PYTHON_SCRIPT_DIR || path.join(__dirname, '..', '..', 'src', 'python');
+        const scriptPath = path.join(baseDir, 'Preprocessing.py');
         const argsString = args.map(filePath => `"${filePath}"`).join(' ');
         const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
-        console.log(`Executing command: ${command}`);
-  
+        console.log(`Executing command: ${command}`); 
+
         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
             if (error) {
                 console.error('Execution error:', error);
@@ -80,7 +82,8 @@ const runPythonScript = (scriptPath: string, args: string[], outputFileName: str
             resolve(stdout.trim());
         });
     });
-};
+}
+
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
     try {

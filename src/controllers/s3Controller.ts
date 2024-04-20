@@ -6,14 +6,21 @@ import { exec } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
 import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
-
+const os = require('os');
 
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
-    const basePath = process.env.PYTHON_SCRIPT_PATH || path.join(__dirname, '..', 'python');
-    return path.join(basePath, 'Preprocessing.py');
+    // Check if the operating system is Windows
+    if (os.platform() === 'win32') {
+        // Path for Windows environment
+        return path.join(__dirname, '..', 'python', 'Preprocessing.py');
+        } else {
+        // Path for render
+        return path.join('/opt', 'render', 'project', 'src', 'python', 'Preprocessing.py');
+    }
 }
+    
 
 const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
     if (!req.files || req.files.length === 0) {
@@ -48,10 +55,9 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
 
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
-    const scriptPath = getPythonScriptPath();
 
     try {
-        const output = await runPythonScript(scriptPath, filePaths, newFileName);
+        const output = await runPythonScript( filePaths, newFileName);
         const intermediateFilePath = path.join(tempDir, newFileName);
 
         await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
@@ -66,12 +72,13 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     }
 };
 
-const runPythonScript = (scriptPath: string, args: string[], outputFileName: string): Promise<string> => {
+const runPythonScript = ( args: string[], outputFileName: string): Promise<string> => {
+    const scriptPath = getPythonScriptPath(); // Ensure this path is correct
+    const argsString = args.map(filePath => `"${filePath}"`).join(' ');
+    const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
+    console.log(`Executing command: ${command}`); // This logs the exact command
+
     return new Promise((resolve, reject) => {
-        const argsString = args.map(filePath => `"${filePath}"`).join(' ');
-        const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
-        console.log(`Executing command: ${command}`);
-  
         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
             if (error) {
                 console.error('Execution error:', error);

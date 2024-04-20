@@ -71,10 +71,34 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     }
 };
 
-const runPythonScript = ( args: string[], outputFileName: string): Promise<string> => {
+// const runPythonScript = ( args: string[], outputFileName: string): Promise<string> => {
+//     const scriptPath = getPythonScriptPath(); // Ensure this path is correct
+//     const argsString = args.map(filePath => `"${filePath}"`).join(' ');
+//     const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
+//     console.log(`Executing command: ${command}`); // This logs the exact command
+
+//     return new Promise((resolve, reject) => {
+//         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
+//             if (error) {
+//                 console.error('Execution error:', error);
+//                 reject(error.message);
+//                 return;
+//             }
+//             if (stderr) {
+//                 console.error('Script error:', stderr);
+//                 reject(stderr);
+//                 return;
+//             }
+//             resolve(stdout.trim());
+//         });
+//     });
+// };
+
+const runPythonScript = (args: string[], outputFileName: string): Promise<string> => {
     const scriptPath = getPythonScriptPath(); // Ensure this path is correct
+    const pythonExecutable = path.join(process.cwd(), 'myenv', 'bin', 'python'); // Path to the Python executable in the virtual environment
     const argsString = args.map(filePath => `"${filePath}"`).join(' ');
-    const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
+    const command = `${pythonExecutable} "${scriptPath}" "${outputFileName}" ${argsString}`;
     console.log(`Executing command: ${command}`); // This logs the exact command
 
     return new Promise((resolve, reject) => {
@@ -93,6 +117,7 @@ const runPythonScript = ( args: string[], outputFileName: string): Promise<strin
         });
     });
 };
+
 
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {

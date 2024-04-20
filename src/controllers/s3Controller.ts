@@ -1,17 +1,29 @@
 import fs from 'fs';
 import path from 'path';
-import { Request, Response } from 'express';
-import { RequestHandler } from 'express';
+import { Request, Response, RequestHandler } from 'express';
 import { exec } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
-import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
-//import csvParser from 'csv-parser';
+import os from 'os'; // Corrected import
+import { notifyUserByEmail } from '../utils/sendEmail/sendMail';
 
-// Helper to get the correct Python script path
+const dataDirectory = getDataPath(); // Call once and use throughout
+
 function getPythonScriptPath() {
-    const basePath = process.env.PYTHON_SCRIPT_PATH || path.join(__dirname, '..', 'python');
-    return path.join(basePath, 'Preprocessing.py');
+    if (os.platform() === 'win32') {
+        return path.join(__dirname, '..', 'python', 'Preprocessing.py');
+    } else {
+        return path.join('/opt', 'render', 'project', 'src', 'python', 'Preprocessing.py');
+    }
+}
+
+function getDataPath() {
+    const baseDir = os.platform() === 'win32' ? path.resolve(__dirname, '..', '..', 'src', 'python', 'data') :
+        path.join('/opt', 'render', 'project', 'src', 'python', 'data');
+    if (!fs.existsSync(baseDir)) {
+        fs.mkdirSync(baseDir, { recursive: true });
+    }
+    return baseDir;
 }
 
 const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
@@ -40,18 +52,17 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
         
         const requestId = uuid();
         const fileName = `${requestId}-${originalFileNameWithoutExtension}.csv`;
-        const filePath = path.join(tempDir, fileName);
+        const filePath = path.join(dataDirectory, fileName);
         await fs.promises.writeFile(filePath, file.buffer);
         filePaths.push(filePath);
     }
 
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
-    const scriptPath = getPythonScriptPath();
 
     try {
-        const output = await runPythonScript(scriptPath, filePaths, newFileName);
-        const intermediateFilePath = path.join(tempDir, newFileName);
+        const output = await runPythonScript(filePaths, newFileName);
+        const intermediateFilePath = path.join(dataDirectory, newFileName);
 
         await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
         filePaths.forEach(file => fs.unlinkSync(file));
@@ -65,12 +76,13 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     }
 };
 
-const runPythonScript = (scriptPath: string, args: string[], outputFileName: string): Promise<string> => {
+const runPythonScript = (args: string[], outputFileName: string): Promise<string> => {
+    const scriptPath = getPythonScriptPath();
+    const argsString = args.map(filePath => `"${filePath}"`).join(' ');
+    const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
+    console.log(`Executing command: ${command}`);
+
     return new Promise((resolve, reject) => {
-        const argsString = args.map(filePath => `"${filePath}"`).join(' ');
-        const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
-        console.log(`Executing command: ${command}`);
-  
         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
             if (error) {
                 console.error('Execution error:', error);
@@ -86,7 +98,6 @@ const runPythonScript = (scriptPath: string, args: string[], outputFileName: str
         });
     });
 };
-
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
     try {
@@ -111,16 +122,14 @@ const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata
     }
 };
 
-//Test for sending an email, add to the function of receiving the results after a database has been built
-    const handleMail: RequestHandler = async (req, res) => {
-    try{
-        const user={name: "racheli", email: "dkracheli135@gmail.com"}
+const handleMail: RequestHandler = async (req, res) => {
+    try {
+        const user = { name: "Racheli", email: "dkracheli135@gmail.com" };
         notifyUserByEmail(user.name, user.email);
-        res.status(200).send("yesss");
+        res.status(200).send("Yes");
     } catch (err) {
         res.status(500).send(err);
     }
-    }
+};
 
-
-export { handlePreprocessing, handleMail};
+export { handlePreprocessing, handleMail };

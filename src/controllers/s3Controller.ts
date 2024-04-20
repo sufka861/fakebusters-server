@@ -8,9 +8,16 @@ import AWS from 'aws-sdk';
 import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
 
 
+
+// Helper to get the correct Python script path
+function getPythonScriptPath() {
+    const basePath = process.env.PYTHON_SCRIPT_PATH || path.join(__dirname, '..', 'python');
+    return path.join(basePath, 'Preprocessing.py');
+}
+
 const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
     if (!req.files || req.files.length === 0) {
-        return res.status(400).send("No files uploaded.");  // Explicit return
+        return res.status(400).send("No files uploaded.");
     }
 
     const tempDir = path.resolve(__dirname, '..', '..', 'src', 'python', 'data');
@@ -26,7 +33,7 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
 
     for (const file of filesData) {
         if (file.mimetype !== "text/csv") {
-            return res.status(400).send("All files must be CSVs.");  
+            return res.status(400).send("All files must be CSVs.");
         }
 
         const originalFileNameWithoutExtension = path.parse(file.originalname).name;
@@ -41,33 +48,30 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
 
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
-    const scriptPath = path.join(__dirname, '..', 'python', 'Preprocessing.py');
+    const scriptPath = getPythonScriptPath();
 
     try {
         const output = await runPythonScript(scriptPath, filePaths, newFileName);
         const intermediateFilePath = path.join(tempDir, newFileName);
 
         await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
-        filePaths.forEach(file => fs.unlinkSync(file)); 
+        filePaths.forEach(file => fs.unlinkSync(file));
 
         res.setHeader('Content-Type', 'application/json');
-        return res.send(output);  
+        return res.send(output);
     } catch (err) {
         console.error('Error processing files:', err);
         filePaths.forEach(file => fs.unlinkSync(file));
-        return res.status(500).send('Error processing the files');  
+        return res.status(500).send('Error processing the files');
     }
 };
 
-
-function runPythonScript(outputFileName: string, args: string[]): Promise<string> {
+const runPythonScript = (scriptPath: string, args: string[], outputFileName: string): Promise<string> => {
     return new Promise((resolve, reject) => {
-        const baseDir = process.env.PYTHON_SCRIPT_DIR || path.join(__dirname, '..', '..', 'src', 'python');
-        const scriptPath = path.join(baseDir, 'Preprocessing.py');
         const argsString = args.map(filePath => `"${filePath}"`).join(' ');
         const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
-        console.log(`Executing command: ${command}`); 
-
+        console.log(`Executing command: ${command}`);
+  
         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
             if (error) {
                 console.error('Execution error:', error);
@@ -82,7 +86,7 @@ function runPythonScript(outputFileName: string, args: string[]): Promise<string
             resolve(stdout.trim());
         });
     });
-}
+};
 
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {

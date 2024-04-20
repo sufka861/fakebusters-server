@@ -41,7 +41,7 @@ const handlePreprocessing = async (req: Request, res: Response) => {
 
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
-    const scriptPath = path.join(__dirname, '..', '..', 'src','python', 'Preprocessing.py');
+    const scriptPath = path.join(__dirname, '..','python', 'Preprocessing.py');
     console.log(scriptPath)
 
     try {
@@ -55,7 +55,7 @@ const handlePreprocessing = async (req: Request, res: Response) => {
         return res.send(output); 
     } catch (err) {
         console.error('Error processing files:', err);
-        filePaths.forEach(file => fs.unlinkSync(file)); 
+        filePaths.forEach(file => fs.unlinkSync(file)); // Clean up even on error
         return res.status(500).send('Error processing the files'); // Ensure to return after sending the response
     }
 };
@@ -88,7 +88,7 @@ const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata
     }
     const s3 = new AWS.S3();
 
-      const tempDir = path.resolve(__dirname, '..', '..', 'src', 'python', 'data');
+      const tempDir = path.resolve(__dirname, '..','src', 'python', 'data');
       if (!fs.existsSync(tempDir)) {
           fs.mkdirSync(tempDir, { recursive: true });
       }

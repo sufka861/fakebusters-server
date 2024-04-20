@@ -26,7 +26,7 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
 
     for (const file of filesData) {
         if (file.mimetype !== "text/csv") {
-            return res.status(400).send("All files must be CSVs.");  // Explicit return
+            return res.status(400).send("All files must be CSVs.");  
         }
 
         const originalFileNameWithoutExtension = path.parse(file.originalname).name;
@@ -51,11 +51,11 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
         filePaths.forEach(file => fs.unlinkSync(file)); 
 
         res.setHeader('Content-Type', 'application/json');
-        return res.send(output);  // Explicit return
+        return res.send(output);  
     } catch (err) {
         console.error('Error processing files:', err);
         filePaths.forEach(file => fs.unlinkSync(file));
-        return res.status(500).send('Error processing the files');  // Explicit return
+        return res.status(500).send('Error processing the files');  
     }
 };
 

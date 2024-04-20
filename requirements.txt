@@ -1,3 +1,4 @@
-pandas==1.2.1
-nltk==3.6.2
-scikit-learn==0.24.1
+pandas
+nltk
+scipy
+scikit-learn

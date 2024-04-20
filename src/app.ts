@@ -13,7 +13,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app: Express = express();
-
+app.use(express.static('dist'))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const logPath = path.join(__dirname, "../logs", "http.log");

@@ -1,34 +1,30 @@
 import fs from 'fs';
 import path from 'path';
-import { Request, Response, RequestHandler } from 'express';
+import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import { exec } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
-import os from 'os'; // Corrected import
-import { notifyUserByEmail } from '../utils/sendEmail/sendMail';
+import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
 
-const dataDirectory = getDataPath(); // Call once and use throughout
 
+// Helper to get the correct Python script path
 function getPythonScriptPath() {
-    if (os.platform() === 'win32') {
-        return path.join(__dirname, '..', 'python', 'Preprocessing.py');
-    } else {
-        return path.join('/opt', 'render', 'project', 'src', 'python', 'Preprocessing.py');
-    }
+    // Ensure the directory name is 'src', not 'srs'
+    const basePath = path.join(process.cwd(), 'src', 'python');
+    return path.join(basePath, 'Preprocessing.py');
 }
 
-function getDataPath() {
-    const baseDir = os.platform() === 'win32' ? path.resolve(__dirname, '..', '..', 'src', 'python', 'data') :
-        path.join('/opt', 'render', 'project', 'src', 'python', 'data');
-    if (!fs.existsSync(baseDir)) {
-        fs.mkdirSync(baseDir, { recursive: true });
-    }
-    return baseDir;
-}
+    
 
 const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).send("No files uploaded.");
+    }
+
+    const tempDir = path.resolve(process.cwd(), 'src', 'python', 'data');
+    if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
     }
 
     const { threshold, signature } = req.body;
@@ -47,7 +43,7 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
         
         const requestId = uuid();
         const fileName = `${requestId}-${originalFileNameWithoutExtension}.csv`;
-        const filePath = path.join(dataDirectory, fileName);
+        const filePath = path.join(tempDir, fileName);
         await fs.promises.writeFile(filePath, file.buffer);
         filePaths.push(filePath);
     }
@@ -56,8 +52,8 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
 
     try {
-        const output = await runPythonScript(filePaths, newFileName);
-        const intermediateFilePath = path.join(dataDirectory, newFileName);
+        const output = await runPythonScript( filePaths, newFileName);
+        const intermediateFilePath = path.join(tempDir, newFileName);
 
         await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
         filePaths.forEach(file => fs.unlinkSync(file));
@@ -71,11 +67,11 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     }
 };
 
-const runPythonScript = (args: string[], outputFileName: string): Promise<string> => {
-    const scriptPath = getPythonScriptPath();
+const runPythonScript = ( args: string[], outputFileName: string): Promise<string> => {
+    const scriptPath = getPythonScriptPath(); // Ensure this path is correct
     const argsString = args.map(filePath => `"${filePath}"`).join(' ');
     const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
-    console.log(`Executing command: ${command}`);
+    console.log(`Executing command: ${command}`); // This logs the exact command
 
     return new Promise((resolve, reject) => {
         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
@@ -94,6 +90,7 @@ const runPythonScript = (args: string[], outputFileName: string): Promise<string
     });
 };
 
+
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
     try {
         const fileContent = fs.readFileSync(filePath);
@@ -111,15 +108,16 @@ const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata
         throw err;
     }
 };
-
-const handleMail: RequestHandler = async (req, res) => {
-    try {
-        const user = { name: "Racheli", email: "dkracheli135@gmail.com" };
+//Test for sending an email, add to the function of receiving the results after a database has been built
+    const handleMail: RequestHandler = async (req, res) => {
+    try{
+        const user={name: "racheli", email: "dkracheli135@gmail.com"}
         notifyUserByEmail(user.name, user.email);
-        res.status(200).send("Yes");
+        res.status(200).send("yesss");
     } catch (err) {
         res.status(500).send(err);
     }
-};
+    }
 
-export { handlePreprocessing, handleMail };
+
+export { handlePreprocessing, handleMail};

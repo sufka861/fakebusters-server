@@ -10,7 +10,6 @@ import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
-    // Ensure the directory name is 'src', not 'srs'
     const basePath = path.join(process.cwd(), 'src', 'python');
     console.log(basePath)
     return path.join(basePath, 'Preprocessing.py');

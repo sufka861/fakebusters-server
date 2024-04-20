@@ -61,24 +61,28 @@ const handlePreprocessing = async (req: Request, res: Response) => {
 };
 
 
-function runPythonScript(scriptPath: string, args: string[], outputFileName: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-      const command = `python ${scriptPath} ${outputFileName} ${args.join(' ')}`;
-      const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
-
-      exec(command, { env }, (error, stdout, stderr) => {
-          if (error) {
-              reject(error.message);
-              return;
-          }
-          if (stderr) {
-              reject(stderr);
-              return;
-          }
-          resolve(stdout.trim());
-      });
-  });
-}
+function runPythonScript(scriptPath: string, filePaths: string[], outputFileName: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const args = filePaths.map(filePath => `"${filePath}"`).join(' ');
+        const command = `python "${scriptPath}" "${outputFileName}" ${args}`;
+        console.log(`Executing command: ${command}`); // Log the command to help with debugging
+  
+        exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
+            if (error) {
+                console.error('Execution error:', error);
+                reject(error.message);
+                return;
+            }
+            if (stderr) {
+                console.error('Script error:', stderr);
+                reject(stderr);
+                return;
+            }
+            resolve(stdout.trim());
+        });
+    });
+  }
+  
 
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {

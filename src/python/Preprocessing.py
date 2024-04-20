@@ -1,9 +1,10 @@
-import os
-import sys
-import re
 import json
-import pandas as pd
+import os
+import re
+import sys
+
 import nltk
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
@@ -89,5 +90,10 @@ if __name__ == "__main__":
         sys.exit(1)
     output_file_name = sys.argv[1]
     file_paths = sys.argv[2:]
+
+    # Download necessary NLTK resources
+    nltk.download('stopwords')
+    nltk.download('punkt')  # for word_tokenize
+    
     analysis_results = process_and_analyze(file_paths, output_file_name)
     print(analysis_results)

@@ -27,6 +27,19 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
         return res.status(400).send("No files uploaded.");
     }
 
+    if (os.platform() === 'win32') {
+        // Path for Windows environment
+        const tempDir = path.resolve(__dirname, '..', '..', 'src', 'python', 'data');
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        } else {
+            const tempDir = path.resolve(__dirname, '..', 'src', 'python', 'data');
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+    }
+
     const tempDir = path.resolve(__dirname, '..', '..', 'src', 'python', 'data');
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });

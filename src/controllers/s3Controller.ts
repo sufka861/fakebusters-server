@@ -1,38 +1,32 @@
 import fs from 'fs';
 import path from 'path';
+import { Request, Response } from 'express';
 import { RequestHandler } from 'express';
 import { exec } from 'child_process';
-import { writeFile } from 'fs/promises';
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
 import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
 
-          
-const handlePreprocessing: RequestHandler = async (req, res) => {
 
-
+const handlePreprocessing = async (req: Request, res: Response) => {
     if (!req.files || req.files.length === 0) {
-        res.status(400).send("No files uploaded.");
-        return;
+        return res.status(400).send("No files uploaded.");
     }
 
-    const tempDir = "src/python/data";
+    const tempDir = path.resolve(__dirname, '..', '..', 'src', 'python', 'data');
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
     }
 
     const { threshold, signature } = req.body;
-    const metadata = {
-        'signature': signature,
-        'threshold': threshold
-      };
+    const metadata = { signature, threshold };
     const filesData = req.files as Express.Multer.File[];
-    const filePaths = [];
-    const originalFileNames = [];
+    const filePaths: string[] = [];
+    const originalFileNames: string[] = [];
+
     for (const file of filesData) {
         if (file.mimetype !== "text/csv") {
-            res.status(400).send("All files must be CSVs.");
-            return;
+            return res.status(400).send("All files must be CSVs.");
         }
 
         const originalFileNameWithoutExtension = path.parse(file.originalname).name;
@@ -41,26 +35,27 @@ const handlePreprocessing: RequestHandler = async (req, res) => {
         const requestId = uuid();
         const fileName = `${requestId}-${originalFileNameWithoutExtension}.csv`;
         const filePath = path.join(tempDir, fileName);
-        await writeFile(filePath, file.buffer);
+        await fs.promises.writeFile(filePath, file.buffer);
         filePaths.push(filePath);
     }
 
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
-    const scriptPath = 'src/python/Preprocessing.py';
+    const scriptPath = path.join(__dirname, '..', 'python', 'Preprocessing.py');
 
     try {
         const output = await runPythonScript(scriptPath, filePaths, newFileName);
         const intermediateFilePath = path.join(tempDir, newFileName);
-        console.log(intermediateFilePath);
-        await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata );
-        filePaths.forEach(file => fs.unlinkSync(file));  
+
+        await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
+        filePaths.forEach(file => fs.unlinkSync(file)); // Clean up after upload
 
         res.setHeader('Content-Type', 'application/json');
-        res.send(output);
+        return res.send(output); 
     } catch (err) {
-        filePaths.forEach(file => fs.unlinkSync(file));
-        res.status(500).send('Error processing the files.');
+        console.error('Error processing files:', err);
+        filePaths.forEach(file => fs.unlinkSync(file)); // Clean up even on error
+        return res.status(500).send('Error processing the files'); // Ensure to return after sending the response
     }
 };
 
@@ -92,7 +87,7 @@ const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata
     }
     const s3 = new AWS.S3();
 
-      const tempDir = "src/python/data";
+      const tempDir = path.resolve(__dirname, '..', '..', 'src', 'python', 'data');
       if (!fs.existsSync(tempDir)) {
           fs.mkdirSync(tempDir, { recursive: true });
       }

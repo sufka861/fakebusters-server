@@ -6,8 +6,7 @@ import { exec } from 'child_process';
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
 import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
-
-
+//import csvParser from 'csv-parser';
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
@@ -25,8 +24,8 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
         fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const { threshold, signature } = req.body;
-    const metadata = { signature, threshold };
+    const { signature } = req.body;
+    const metadata = { signature };
     const filesData = req.files as Express.Multer.File[];
     const filePaths: string[] = [];
     const originalFileNames: string[] = [];
@@ -91,21 +90,27 @@ const runPythonScript = (scriptPath: string, args: string[], outputFileName: str
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
     try {
-        const fileContent = fs.readFileSync(filePath);
+ 
+        const fileBuffer = fs.readFileSync(filePath);
         const s3 = new AWS.S3();
         const params = {
             Bucket: 'testbucket-lpa',
             Key: fileName,
-            Body: fileContent,
+            Body: fileBuffer,
+            ContentType: 'text/csv', 
             Metadata: metadata
         };
+
+        // Upload the file to S3
         const data = await s3.putObject(params).promise();
+
         console.log('Object uploaded successfully:', data);
     } catch (err) {
         console.error('Error uploading object:', err);
         throw err;
     }
 };
+
 //Test for sending an email, add to the function of receiving the results after a database has been built
     const handleMail: RequestHandler = async (req, res) => {
     try{

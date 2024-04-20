@@ -8,9 +8,9 @@ import AWS from 'aws-sdk';
 import {notifyUserByEmail} from '../utils/sendEmail/sendMail'
 
 
-const handlePreprocessing = async (req: Request, res: Response) => {
+const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
     if (!req.files || req.files.length === 0) {
-        return res.status(400).send("No files uploaded.");
+        return res.status(400).send("No files uploaded.");  // Explicit return
     }
 
     const tempDir = path.resolve(__dirname, '..', '..', 'src', 'python', 'data');
@@ -26,7 +26,7 @@ const handlePreprocessing = async (req: Request, res: Response) => {
 
     for (const file of filesData) {
         if (file.mimetype !== "text/csv") {
-            return res.status(400).send("All files must be CSVs.");
+            return res.status(400).send("All files must be CSVs.");  // Explicit return
         }
 
         const originalFileNameWithoutExtension = path.parse(file.originalname).name;
@@ -41,8 +41,7 @@ const handlePreprocessing = async (req: Request, res: Response) => {
 
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
-    const scriptPath = path.join(__dirname, '..','python', 'Preprocessing.py');
-    console.log(scriptPath)
+    const scriptPath = path.join(__dirname, '..', 'python', 'Preprocessing.py');
 
     try {
         const output = await runPythonScript(scriptPath, filePaths, newFileName);
@@ -52,20 +51,20 @@ const handlePreprocessing = async (req: Request, res: Response) => {
         filePaths.forEach(file => fs.unlinkSync(file)); 
 
         res.setHeader('Content-Type', 'application/json');
-        return res.send(output); 
+        return res.send(output);  // Explicit return
     } catch (err) {
         console.error('Error processing files:', err);
-        filePaths.forEach(file => fs.unlinkSync(file)); // Clean up even on error
-        return res.status(500).send('Error processing the files'); // Ensure to return after sending the response
+        filePaths.forEach(file => fs.unlinkSync(file));
+        return res.status(500).send('Error processing the files');  // Explicit return
     }
 };
 
 
-function runPythonScript(scriptPath: string, filePaths: string[], outputFileName: string): Promise<string> {
+const runPythonScript = (scriptPath: string, args: string[], outputFileName: string): Promise<string> => {
     return new Promise((resolve, reject) => {
-        const args = filePaths.map(filePath => `"${filePath}"`).join(' ');
-        const command = `python "${scriptPath}" "${outputFileName}" ${args}`;
-        console.log(`Executing command: ${command}`); // Log the command to help with debugging
+        const argsString = args.map(filePath => `"${filePath}"`).join(' ');
+        const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
+        console.log(`Executing command: ${command}`);
   
         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
             if (error) {
@@ -81,38 +80,25 @@ function runPythonScript(scriptPath: string, filePaths: string[], outputFileName
             resolve(stdout.trim());
         });
     });
-  }
-  
-
+};
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
-    if (!fs.existsSync(filePath)) {
-      console.error("File does not exist.");
-      return;
+    try {
+        const fileContent = fs.readFileSync(filePath);
+        const s3 = new AWS.S3();
+        const params = {
+            Bucket: 'testbucket-lpa',
+            Key: fileName,
+            Body: fileContent,
+            Metadata: metadata
+        };
+        const data = await s3.putObject(params).promise();
+        console.log('Object uploaded successfully:', data);
+    } catch (err) {
+        console.error('Error uploading object:', err);
+        throw err;
     }
-    const s3 = new AWS.S3();
-
-      const tempDir = path.resolve(__dirname, '..','src', 'python', 'data');
-      if (!fs.existsSync(tempDir)) {
-          fs.mkdirSync(tempDir, { recursive: true });
-      }
-  
-      const fileContent = fs.readFileSync(filePath);
-      const params = {
-        Bucket: 'testbucket-lpa',
-        Key: fileName,
-        Body: fileContent,
-        Metadata: metadata
-      };
-      s3.putObject(params, (err, data) => {
-        if (err) {
-            console.error('Error uploading object:', err);
-        } else {
-            console.log('Object uploaded successfully:', data);
-        }
-    });
-    }
-
+};
 //Test for sending an email, add to the function of receiving the results after a database has been built
     const handleMail: RequestHandler = async (req, res) => {
     try{

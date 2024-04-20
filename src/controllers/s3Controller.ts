@@ -42,6 +42,7 @@ const handlePreprocessing = async (req: Request, res: Response) => {
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
     const scriptPath = path.join(__dirname, '..', '..', 'src','python', 'Preprocessing.py');
+    console.log(scriptPath)
 
     try {
         const output = await runPythonScript(scriptPath, filePaths, newFileName);

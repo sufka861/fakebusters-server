@@ -22,13 +22,17 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
         return res.status(400).send("No files uploaded.");
     }
 
+
     const tempDir = path.resolve(process.cwd(), 'src', 'python', 'data');
+
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const { threshold, signature } = req.body;
-    const metadata = { signature, threshold };
+
+    const { signature } = req.body;
+    const metadata = { signature };
+
     const filesData = req.files as Express.Multer.File[];
     const filePaths: string[] = [];
     const originalFileNames: string[] = [];
@@ -93,15 +97,20 @@ const runPythonScript = ( args: string[], outputFileName: string): Promise<strin
 
 const uploadFileToS3Direct = async (filePath: string, fileName: string, metadata: any): Promise<void> => {
     try {
-        const fileContent = fs.readFileSync(filePath);
+ 
+        const fileBuffer = fs.readFileSync(filePath);
         const s3 = new AWS.S3();
         const params = {
             Bucket: 'testbucket-lpa',
             Key: fileName,
-            Body: fileContent,
+            Body: fileBuffer,
+            ContentType: 'text/csv', 
             Metadata: metadata
         };
+
+        // Upload the file to S3
         const data = await s3.putObject(params).promise();
+
         console.log('Object uploaded successfully:', data);
     } catch (err) {
         console.error('Error uploading object:', err);

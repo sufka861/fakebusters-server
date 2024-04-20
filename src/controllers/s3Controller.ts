@@ -108,7 +108,7 @@ const runPythonScript = (args: string[], outputFileName: string): Promise<string
                 reject(error.message);
                 return;
             }
-            if (stderr) {
+            if (stderr && !stderr.toLowerCase().includes('downloading')) {
                 console.error('Script error:', stderr);
                 reject(stderr);
                 return;

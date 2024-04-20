@@ -41,20 +41,21 @@ const handlePreprocessing = async (req: Request, res: Response) => {
 
     const combinedFileName = originalFileNames.join('+');
     const newFileName = `${combinedFileName}_${uuid()}.csv`; 
-    const scriptPath = path.join(__dirname, '..', 'python', 'Preprocessing.py');
+    const scriptPath = path.join(__dirname, '..', '..', 'src','python', 'Preprocessing.py');
+    console.log(scriptPath)
 
     try {
         const output = await runPythonScript(scriptPath, filePaths, newFileName);
         const intermediateFilePath = path.join(tempDir, newFileName);
 
         await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
-        filePaths.forEach(file => fs.unlinkSync(file)); // Clean up after upload
+        filePaths.forEach(file => fs.unlinkSync(file)); 
 
         res.setHeader('Content-Type', 'application/json');
         return res.send(output); 
     } catch (err) {
         console.error('Error processing files:', err);
-        filePaths.forEach(file => fs.unlinkSync(file)); // Clean up even on error
+        filePaths.forEach(file => fs.unlinkSync(file)); 
         return res.status(500).send('Error processing the files'); // Ensure to return after sending the response
     }
 };

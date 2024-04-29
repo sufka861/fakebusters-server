@@ -1,0 +1,10 @@
+{
+    "bearer_token": "AAAAAAAAAAAAAAAAAAAAAB8PtgEAAAAAPHG0rF1s8AZ6rLqV1%2BEpjmE4QA0%3DmkhwEiafPwnPWD3Aandc2vDQbDulqtg3oqogudL9Dk7QGj6ULy",
+    "consumer_key": "KxnJ7IkyRvTlhRVx3YFEtoPbt",
+    "consumer_secret": "60eOix9f1f4LRwndEq2yo53SFItb6YRqZUuggRcVKrKaVmDFJH",
+    "access_token": "1783889032952283136-LizmsoEjZCiEZl1KhSNz35b3eU7yjr",
+    "access_token_secret": "2mGyGBa0uGw1QaZWmTLhNLK1HuZ6jPMh96c01r1foTnbp",
+    "client_id": "VlpKLWNKVVBsc0Frdk9RQXM0bEc6MTpjaQ",
+    "client_secret": "A-RB1WMM_eDzEHYTNwNAn9AcCVFXFLqkGoHcLIBXw4GQ4vaAHv",
+    "request_token_url": "https://api.twitter.com/oauth/request_token"
+}

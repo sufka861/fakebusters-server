@@ -9,6 +9,7 @@ import s3Router from "./routes/s3Router";
 import webhookRouter from "./routes/webhookRouter";
 import sseRouter from "./routes/sseRouter";
 import dotenv from "dotenv";
+import twitterRouter from "./routes/twitterRouter";
 
 dotenv.config();
 
@@ -26,5 +27,6 @@ app.use(cors());
 app.use("/api/s3/", s3Router);
 app.use("/api/webhook/", webhookRouter);
 app.use("/api/sse/", sseRouter);
+app.use("/api/twitter/", twitterRouter);
 
 export default app;

@@ -2,3 +2,4 @@ pandas
 nltk
 scipy
 scikit-learn
+requests-oauthlib

@@ -1,10 +1,11 @@
 {
-    "bearer_token": "AAAAAAAAAAAAAAAAAAAAAB8PtgEAAAAAPHG0rF1s8AZ6rLqV1%2BEpjmE4QA0%3DmkhwEiafPwnPWD3Aandc2vDQbDulqtg3oqogudL9Dk7QGj6ULy",
-    "consumer_key": "KxnJ7IkyRvTlhRVx3YFEtoPbt",
-    "consumer_secret": "60eOix9f1f4LRwndEq2yo53SFItb6YRqZUuggRcVKrKaVmDFJH",
-    "access_token": "1783889032952283136-LizmsoEjZCiEZl1KhSNz35b3eU7yjr",
-    "access_token_secret": "2mGyGBa0uGw1QaZWmTLhNLK1HuZ6jPMh96c01r1foTnbp",
+    "bearer_token": "AAAAAAAAAAAAAAAAAAAAAB8PtgEAAAAAwSX2TMGte4%2BM%2FRqBJBfjM%2FfblTk%3Dht2JYGDz5ZgXLRPaekURMZxEPPNFXzibmbhEWRV9n28pkXtzGR",
+    "consumer_key": "ud8H3wYx5OYmlxFHLk7zHfnW8",
+    "consumer_secret": "wixLygmCYe4dzNiOcwN7t7q9fOKsVUoDHW61XeC58sRFBUMGi7",
+    "access_token": "1783889032952283136-j5LOcZj0Id675Cc1fDBEntVy7TwkBC",
+    "access_token_secret": "Q4zNAePp0jn0QHsX4qeJ1Yjgato5iyLZyjxMk96DwNUJB",
     "client_id": "VlpKLWNKVVBsc0Frdk9RQXM0bEc6MTpjaQ",
-    "client_secret": "A-RB1WMM_eDzEHYTNwNAn9AcCVFXFLqkGoHcLIBXw4GQ4vaAHv",
-    "request_token_url": "https://api.twitter.com/oauth/request_token"
+    "client_secret": "rBKiseg99lZHf-L-5VRmxAZoRq4P38x6VmHKN-IIkhxCDYOvqj",
+    "request_token_url": "https://api.twitter.com/oauth/request_token",
+
 }

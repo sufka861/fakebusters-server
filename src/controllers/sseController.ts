@@ -99,7 +99,7 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
                         res.write(`data: ${result}\n\n`);
                         res.end();
                     })
-                    .on('error', (error) => {
+                    .on('error', (error: { message: string; }) => {
                         res.write(`data: ${JSON.stringify({ time: new Date().toISOString(), error: 'Error processing file: ' + error.message })}\n\n`);
                         res.end();
                     });

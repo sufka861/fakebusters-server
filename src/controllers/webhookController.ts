@@ -3,7 +3,7 @@ import { Request, RequestHandler, Response } from "express";
 
 const handleLPAResults: RequestHandler = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   const { requestId, data } = req.body; // TODO: Lambda includes requestId in the payload
 
@@ -17,34 +17,21 @@ const handleLPAResults: RequestHandler = async (
   const sendEvent = () => {
     const job = requestId[requestId];
     if (job) {
-        res.write(`data: ${JSON.stringify(job)}\n\n`);
+      res.write(`data: ${JSON.stringify(job)}\n\n`);
 
-        if (job.status === 'completed') {
-  
-            res.end();
-            return;
-        }
-    } else {
- 
-        res.write('data: {"error": "Job not found"}\n\n');
+      if (job.status === "completed") {
         res.end();
+        return;
+      }
+    } else {
+      res.write('data: {"error": "Job not found"}\n\n');
+      res.end();
     }
 
-    setTimeout(sendEvent, 1000); 
-};
+    setTimeout(sendEvent, 1000);
+  };
 
-sendEvent();
-
-
-
-
-
-
-
-
-
-
-
+  sendEvent();
 
   res.status(200).end();
 };
@@ -55,4 +42,3 @@ function getClient(requestId: string): string {
   return requestId;
 }
 export default handleLPAResults;
-

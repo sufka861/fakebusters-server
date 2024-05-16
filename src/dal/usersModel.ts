@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   password: string;
+  analysis_id: string[]
 }
 
 const usersDAL = new GenericDAL<User>(process.env.USERS_COLLECTION_NAME || "");
@@ -33,21 +34,19 @@ const getUserById: RequestHandler = async (req: Request, res: Response) => {
   } catch (error) {
     res
       .status(404)
-      .send(`Unable to find matching document with id: ${req.params.id}`);
+      .send(`Unable to find matching user with id: ${req.params.id}`);
   }
 };
 
 const createUser: RequestHandler = async (req: Request, res: Response) => {
   try {
-    const newUser = await usersDAL.create({
-      name: "John Doe",
-      email: "john@example.com",
-    });
+    console.log(req.body);
+    const newUser = await usersDAL.create(req.body);
     newUser
       ? res
           .status(201)
-          .send(`Successfully created a new game with id ${newUser._id}`)
-      : res.status(500).send("Failed to create a new game.");
+          .send(`Successfully created a new user with id ${newUser._id}`)
+      : res.status(500).send("Failed to create a new user.");
   } catch (error) {
     console.error(error);
     res.status(400).send(error);

@@ -5,9 +5,15 @@ import { GenericDAL } from "./genericDal";
 
 interface Result {
   _id?: ObjectId;
-  name: string;
-  email: string;
-  password: string;
+  analysis_id: string;
+  account: number;
+  freq: number;
+  initial_authors_count: number;
+  initial_posts_count: number;
+  categories: string[];
+  data: number[];
+  word: number;
+  results: object[]
 }
 
 const lpaDAL = new GenericDAL<Result>(process.env.LPA_COLLECTION_NAME || "");
@@ -33,23 +39,20 @@ const getResultById: RequestHandler = async (req: Request, res: Response) => {
   } catch (error) {
     res
       .status(404)
-      .send(`Unable to find matching document with id: ${req.params.id}`);
+      .send(`Unable to find matching analysis with id: ${req.params.id}`);
   }
 };
 
 const createResult: RequestHandler = async (req: Request, res: Response) => {
   try {
-    const newResult = await lpaDAL.create({
-      name: "John Doe",
-      email: "john@example.com",
-    });
+    const newResult = await lpaDAL.create(req.body);
     newResult
       ? res
           .status(201)
           .send(
-            `Successfully created a new lpa result with id ${newResult._id}`,
+            `Successfully created a new lpa analysis with id ${newResult._id}`,
           )
-      : res.status(500).send("Failed to create a new lpa result.");
+      : res.status(500).send("Failed to create a new lpa analysis.");
   } catch (error) {
     console.error(error);
     res.status(400).send(error);

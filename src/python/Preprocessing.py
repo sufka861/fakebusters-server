@@ -1,10 +1,9 @@
-import json
 import os
-import re
 import sys
-
-import nltk
+import re
+import json
 import pandas as pd
+import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
@@ -38,7 +37,7 @@ def process_and_analyze(file_paths, output_file_name):
 
     df_selected = df[['author_username', 'text']]
     posts_count_by_author = df_selected.groupby('author_username').size()
-    authors_with_enough_posts = posts_count_by_author[posts_count_by_author > 30].index
+    authors_with_enough_posts = posts_count_by_author[posts_count_by_author > 30].index.tolist()
     df_filtered = df_selected[df_selected['author_username'].isin(authors_with_enough_posts)]
     concatenated_texts_by_author = df_filtered.groupby('author_username')['text'].apply(' '.join)
     corpus = [preprocess_text(text, stop_words) for text in concatenated_texts_by_author]
@@ -78,7 +77,8 @@ def process_and_analyze(file_paths, output_file_name):
         'word': total_elements,
         'freq': total_rows,
         'account': total_documents,
-        'output_file_name': output_file_name 
+        'output_file_name': output_file_name,
+        'author_username': authors_with_enough_posts
     }
 
     result_json = json.dumps(result_dict, ensure_ascii=False, indent=4)
@@ -90,10 +90,5 @@ if __name__ == "__main__":
         sys.exit(1)
     output_file_name = sys.argv[1]
     file_paths = sys.argv[2:]
-
-    # Download necessary NLTK resources
-    nltk.download('stopwords')
-    nltk.download('punkt')  # for word_tokenize
-    
     analysis_results = process_and_analyze(file_paths, output_file_name)
     print(analysis_results)

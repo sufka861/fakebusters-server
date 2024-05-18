@@ -35,6 +35,19 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     return null;
   }
 
+  async getByFilter(filter: Filter<T>): Promise<T | null> {
+    try {
+      await this.client.connect();
+      const document = await this.collection.findOne(filter);
+      return document as T | null;
+    } catch (err) {
+      console.error(err);
+      return null;
+    } finally {
+      await this.client.close();
+    }
+  }
+
   async create(document: any): Promise<T> {
     try {
       await this.client.connect();

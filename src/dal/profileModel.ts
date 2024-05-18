@@ -22,7 +22,7 @@ const profileDAL = new GenericDAL<Profile>(
   process.env.PROFILES_COLLECTION_NAME || "",
 );
 
-const getProfiles: RequestHandler = async (_req: Request, res: Response) => {
+const getProfiles = async (_req: Request, res: Response) => {
   try {
     const profiles = await profileDAL.getAll();
     res.status(200).send(profiles);
@@ -47,6 +47,18 @@ const getProfileById: RequestHandler = async (req: Request, res: Response) => {
   }
 };
 
+const getProfileByUsername = async (username: string) => {
+  try {
+    const profile = await profileDAL.getByFilter({username: username});
+    if (profile) {
+      return profile;
+    }
+    else {return null;}
+  } catch (error) {
+    return null; 
+  }
+};
+
 const createProfile: RequestHandler = async (req: Request, res: Response) => {
   try {
     const newProfile = await profileDAL.create(req.body);
@@ -61,4 +73,4 @@ const createProfile: RequestHandler = async (req: Request, res: Response) => {
   }
 };
 
-export { getProfiles, getProfileById, createProfile };
+export { getProfiles, getProfileById, createProfile,getProfileByUsername };

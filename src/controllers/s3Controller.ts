@@ -6,6 +6,8 @@ import { exec } from "child_process";
 import { v4 as uuid } from "uuid";
 import AWS from "aws-sdk";
 import { notifyUserByEmail } from "../utils/sendEmail/sendMail";
+import { getProfileByUsername, createProfile } from "../dal/profileModel";
+import { get_user } from "./twitterController";
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
@@ -16,7 +18,7 @@ function getPythonScriptPath() {
 
 const handlePreprocessing: RequestHandler = async (
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
@@ -52,12 +54,28 @@ const handlePreprocessing: RequestHandler = async (
 
   const combinedFileName = originalFileNames.join("+");
   const newFileName = `${combinedFileName}_${uuid()}.csv`;
-
   try {
     const output = await runPythonScript(filePaths, newFileName);
-    const output_JSON =JSON.parse(output);
-    output_JSON.author_username;
-    output_JSON.author_username;
+    const output_JSON = JSON.parse(output);
+    const users = output_JSON.author_username;
+    for (const user_name of users) {
+      const user_from_db = await getProfileByUsername(user_name);
+      if (user_from_db == null) {
+        /*call x api to get this user and save it in db*/
+        const user_from_twitter = await get_user(user_name);
+        createProfile(user_from_twitter);
+      } else {
+        console.log(`user ${user_from_db} already exists`);
+      }
+    }
+    for (const user_name of users) {
+      const user_from_db = getProfileByUsername(user_name);
+      if (user_from_db == null) {
+        /*call x api to get this user and save it in db*/
+        const user_from_twitter = get_user(user_name);
+        createProfile(user_from_twitter);
+      }
+    }
     const intermediateFilePath = path.join(tempDir, newFileName);
 
     await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
@@ -72,32 +90,9 @@ const handlePreprocessing: RequestHandler = async (
   }
 };
 
-// const runPythonScript = ( args: string[], outputFileName: string): Promise<string> => {
-//     const scriptPath = getPythonScriptPath(); // Ensure this path is correct
-//     const argsString = args.map(filePath => `"${filePath}"`).join(' ');
-//     const command = `python "${scriptPath}" "${outputFileName}" ${argsString}`;
-//     console.log(`Executing command: ${command}`); // This logs the exact command
-
-//     return new Promise((resolve, reject) => {
-//         exec(command, { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }}, (error, stdout, stderr) => {
-//             if (error) {
-//                 console.error('Execution error:', error);
-//                 reject(error.message);
-//                 return;
-//             }
-//             if (stderr) {
-//                 console.error('Script error:', stderr);
-//                 reject(stderr);
-//                 return;
-//             }
-//             resolve(stdout.trim());
-//         });
-//     });
-// };
-
 const runPythonScript = (
   args: string[],
-  outputFileName: string,
+  outputFileName: string
 ): Promise<string> => {
   const scriptPath = getPythonScriptPath(); // Ensure this path is correct
   const pythonExecutable = path.join(process.cwd(), "myenv", "bin", "python"); // Path to the Python executable in the virtual environment
@@ -121,7 +116,7 @@ const runPythonScript = (
           return;
         }
         resolve(stdout.trim());
-      },
+      }
     );
   });
 };
@@ -129,7 +124,7 @@ const runPythonScript = (
 const uploadFileToS3Direct = async (
   filePath: string,
   fileName: string,
-  metadata: any,
+  metadata: any
 ): Promise<void> => {
   try {
     const fileBuffer = fs.readFileSync(filePath);

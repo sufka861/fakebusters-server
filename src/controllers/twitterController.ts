@@ -1,42 +1,27 @@
-import { spawn } from "child_process";
-import path from "path";
 
-function get_user_me() {
-  const basePath = path.join(process.cwd(), "src", "X-api");
-  console.log(basePath);
-  const absoluteScriptPath = path.join(basePath, "get-users-me.py");
-  const pythonProcess = spawn("python", [absoluteScriptPath]);
 
-  pythonProcess.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
+const url = "https://api.twitter.com/2/users/by?usernames=orna_friedman&user.fields=created_at&expansions=pinned_tweet_id&tweet.fields=author_id,created_at";
 
-  pythonProcess.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
 
-  pythonProcess.on("close", (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-}
 
-function get_user() {
-  const basePath = path.join(process.cwd(), "src", "X-api");
-  console.log(basePath);
-  const absoluteScriptPath = path.join(basePath, "get-users-by-context.py");
-  const pythonProcess = spawn("python", [absoluteScriptPath]);
+const get_user = async (_req: Request, res: Response) => {
+  const options = {
+    method: 'GET',
+    headers: {
+      Authorization: _req.headers.authorization?.toString() || process.env.bearer_token
+    }
+  };
 
-  pythonProcess.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    res?.status(201).send(data);
+    console.log(data);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(401).send(error);
+  }
+};
 
-  pythonProcess.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
 
-  pythonProcess.on("close", (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-}
-
-export { get_user_me, get_user };
+export { get_user };

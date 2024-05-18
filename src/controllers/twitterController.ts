@@ -1,42 +1,36 @@
-import { spawn } from "child_process";
-import path from "path";
 
-function get_user_me() {
-  const basePath = path.join(process.cwd(), "src", "X-api");
-  console.log(basePath);
-  const absoluteScriptPath = path.join(basePath, "get-users-me.py");
-  const pythonProcess = spawn("python", [absoluteScriptPath]);
+import { Request, Response } from 'express';
+const BASE_URL = process.env.BASE_URL;
+const get_user = async (_req: Request, res: Response) => {
+  const username = _req.query.username?.toString();
+  if (!username) {
+    res.status(400).send({ error: 'Username is missing' });
+    return;
+  }
+  const url = `${BASE_URL}?usernames=${username}&${process.env.twitter_fields}`;
+  const authorizationHeader = _req.headers.authorization?.toString() || process.env.BEARER_TOKEN;
+  
+  if (!authorizationHeader) {
+    res.status(401).send({ error: 'Authorization token is missing' });
+    return;
+  }
+  const options = {
+    method: 'GET',
+    headers: {
+      Authorization: authorizationHeader
+    }
+  };
 
-  pythonProcess.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    res?.status(201).send(data);
+    console.log(data);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(401).send(error);
+  }
+};
 
-  pythonProcess.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
 
-  pythonProcess.on("close", (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-}
-
-function get_user() {
-  const basePath = path.join(process.cwd(), "src", "X-api");
-  console.log(basePath);
-  const absoluteScriptPath = path.join(basePath, "get-users-by-context.py");
-  const pythonProcess = spawn("python", [absoluteScriptPath]);
-
-  pythonProcess.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
-
-  pythonProcess.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
-
-  pythonProcess.on("close", (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-}
-
-export { get_user_me, get_user };
+export { get_user };

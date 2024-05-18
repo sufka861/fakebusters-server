@@ -55,6 +55,9 @@ const handlePreprocessing: RequestHandler = async (
 
   try {
     const output = await runPythonScript(filePaths, newFileName);
+    const output_JSON =JSON.parse(output);
+    output_JSON.author_username;
+    output_JSON.author_username;
     const intermediateFilePath = path.join(tempDir, newFileName);
 
     await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);

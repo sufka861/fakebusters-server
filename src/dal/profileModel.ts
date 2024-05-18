@@ -22,7 +22,7 @@ const profileDAL = new GenericDAL<Profile>(
   process.env.PROFILES_COLLECTION_NAME || "",
 );
 
-const getProfiles: RequestHandler = async (_req: Request, res: Response) => {
+const getProfiles = async (_req: Request, res: Response) => {
   try {
     const profiles = await profileDAL.getAll();
     res.status(200).send(profiles);
@@ -43,32 +43,25 @@ const getProfileById: RequestHandler = async (req: Request, res: Response) => {
   } catch (error) {
     res
       .status(404)
-      .send(`Unable to find matching document with id: ${req.params.id}`);
+      .send(`Unable to find matching profile with id: ${req.params.id}`);
+  }
+};
+
+const getProfileByUsername = async (username: string) => {
+  try {
+    const profile = await profileDAL.getByFilter({username: username});
+    if (profile) {
+      return profile;
+    }
+    else {return null;}
+  } catch (error) {
+    return null; 
   }
 };
 
 const createProfile: RequestHandler = async (req: Request, res: Response) => {
   try {
-    const newProfile = await profileDAL.create({
-      created_at: "2024-04-26T16:01:20.000Z",
-      description: "testing description",
-      id: "1783889032952283136",
-      location: "israel",
-      name: "roni naor",
-      profile_image_url:
-        "https://pbs.twimg.com/profile_images/1784993903151591424/CwQgZD9j_normal.jpg",
-      protected: false,
-      public_metrics: {
-        followers_count: 0,
-        following_count: 1,
-        like_count: 0,
-        listed_count: 0,
-        tweet_count: 0,
-      },
-      username: "roninaor3",
-      verified: false,
-      verified_type: "none",
-    });
+    const newProfile = await profileDAL.create(req.body);
     newProfile
       ? res
           .status(201)
@@ -80,4 +73,4 @@ const createProfile: RequestHandler = async (req: Request, res: Response) => {
   }
 };
 
-export { getProfiles, getProfileById, createProfile };
+export { getProfiles, getProfileById, createProfile,getProfileByUsername };

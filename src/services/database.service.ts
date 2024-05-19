@@ -1,10 +1,3 @@
-import * as mongoDB from "mongodb";
-
-export const collections: {
-  users?: mongoDB.Collection;
-  LPA?: mongoDB.Collection;
-} = {};
-
 import { MongoClient } from "mongodb";
 
 const client = new MongoClient(process.env.DB_CONN_STRING || "");

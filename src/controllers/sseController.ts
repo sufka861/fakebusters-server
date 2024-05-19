@@ -61,27 +61,27 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
     Connection: "keep-alive",
   });
 
-  const clientId = req.query.clientId as string;
+  const fileName = req.query.fileName as string;
   // TODO: send client ID to AWS
-  if (!clientId) {
-    res.write('data: {"error": "No clientId provided"}\n\n');
+  if (!fileName) {
+    res.write('data: {"error": "No fileName provided"}\n\n');
     res.end();
     return;
   }
 
-  clients.set(clientId, res);
+  clients.set(fileName, res);
 
   req.on("close", () => {
-    clients.delete(clientId);
+    clients.delete(fileName);
     res.end();
   });
 };
 
 const notify_SSE: RequestHandler = (req: Request, res: Response) => {
-  const { bucketName, fileName, clientId } = req.body;
+  const { bucketName, fileName } = req.body;
 
-  if (!clientId || !clients.has(clientId)) {
-    res.status(400).send('Invalid clientId or client not connected');
+  if (!fileName || !clients.has(fileName)) {
+    res.status(400).send('Invalid fileName or client not connected');
     return;
   }
 
@@ -102,7 +102,7 @@ const notify_SSE: RequestHandler = (req: Request, res: Response) => {
           sockpuppetData: sockpuppetData.data,
         });
 
-        const client = clients.get(clientId);
+        const client = clients.get(fileName);
         if (client) {
           client.write(`data: ${result}\n\n`);
         }
@@ -110,7 +110,7 @@ const notify_SSE: RequestHandler = (req: Request, res: Response) => {
         res.status(200).send("Notification received and data sent to client");
       })
       .on("error", (error: unknown) => {
-        const client = clients.get(clientId);
+        const client = clients.get(fileName);
         if (client) {
           if (error instanceof Error) {
             client.write(

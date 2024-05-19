@@ -1,6 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import AWS from "aws-sdk";
 import csv from "csv-parser";
+import { log } from "console";
 
 AWS.config.update({
   accessKeyId: process.env.ACCESS_AWS_S3,
@@ -62,6 +63,7 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
   });
 
   const fileName = req.query.fileName as string;
+  console.log("Inside handleSSE with file:", fileName);
   // TODO: send client ID to AWS
   if (!fileName) {
     res.write('data: {"error": "No fileName provided"}\n\n');
@@ -80,6 +82,8 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
 const notify_SSE: RequestHandler = (req: Request, res: Response) => {
   const { bucketName, fileName } = req.body;
 
+  console.log("Inside notify_SSE with fileName:", fileName);
+  
   if (!fileName || !clients.has(fileName)) {
     res.status(400).send('Invalid fileName or client not connected');
     return;

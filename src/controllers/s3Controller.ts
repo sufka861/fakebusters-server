@@ -20,6 +20,7 @@ const handlePreprocessing: RequestHandler = async (
   req: Request,
   res: Response
 ) => {
+  console.log("inside handlePreprocessing");
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
   }
@@ -127,6 +128,7 @@ const uploadFileToS3Direct = async (
   fileName: string,
   metadata: any
 ): Promise<void> => {
+  console.log("Uploading file to S3:", filePath, fileName);
   try {
     const fileBuffer = fs.readFileSync(filePath);
     const s3 = new AWS.S3();

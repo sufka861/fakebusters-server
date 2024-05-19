@@ -30,28 +30,29 @@ const handlePreprocessing: RequestHandler = async (
     fs.mkdirSync(tempDir, { recursive: true });
   }
 
-  const { signature } = req.body;
-  const metadata = { signature };
-
+  
   const filesData = req.files as Express.Multer.File[];
   const filePaths: string[] = [];
   const originalFileNames: string[] = [];
-
+  
+  const requestId = uuid();
   for (const file of filesData) {
     if (file.mimetype !== "text/csv") {
       return res.status(400).send("All files must be CSVs.");
     }
-
+    
     const originalFileNameWithoutExtension = path.parse(file.originalname).name;
     originalFileNames.push(originalFileNameWithoutExtension);
-
-    const requestId = uuid();
+    
     const fileName = `${requestId}-${originalFileNameWithoutExtension}.csv`;
     const filePath = path.join(tempDir, fileName);
     await fs.promises.writeFile(filePath, file.buffer);
     filePaths.push(filePath);
   }
 
+  const { signature } = req.body;
+  const metadata = { signature };
+  
   const combinedFileName = originalFileNames.join("+");
   const newFileName = `${combinedFileName}_${uuid()}.csv`;
   try {

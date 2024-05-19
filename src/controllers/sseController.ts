@@ -1,7 +1,6 @@
 import { Request, RequestHandler, Response } from "express";
 import AWS from "aws-sdk";
 import csv from "csv-parser";
-import { log } from "console";
 
 AWS.config.update({
   accessKeyId: process.env.ACCESS_AWS_S3,

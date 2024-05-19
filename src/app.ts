@@ -27,7 +27,13 @@ app.use(
   }),
 );
 app.use(cors());
-connectToDatabase();
+try{
+  connectToDatabase();
+}
+catch(err){
+  console.error("DB Connection failed");
+  console.error(err);
+}
 app.use("/api/s3/", s3Router);
 app.use("/api/webhook/", webhookRouter);
 app.use("/api/sse/", sseRouter);

@@ -13,6 +13,7 @@ import lpaRouter from "./routes/lpaRouter";
 import profileRouter from "./routes/profilesRouter";
 import dotenv from "dotenv";
 import twitterRouter from "./routes/twitterRouter";
+import {connectToDatabase} from "./services/database.service";
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ app.use(
   }),
 );
 app.use(cors());
-
+connectToDatabase();
 app.use("/api/s3/", s3Router);
 app.use("/api/webhook/", webhookRouter);
 app.use("/api/sse/", sseRouter);

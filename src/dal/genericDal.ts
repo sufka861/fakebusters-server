@@ -57,7 +57,7 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     } catch (err) {
       console.error(err);
       throw err;
-    } \
+    }
     // finally {
     //   await this.client.close();
     // }

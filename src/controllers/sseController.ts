@@ -51,6 +51,9 @@ const calculateIdentityLikelihood = (
   return { data: likelihoodCategories };
 };
 
+// Store active SSE connections
+const clients: Map<string, Response> = new Map();
+
 const handleSSE: RequestHandler = (req: Request, res: Response): void => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -58,70 +61,77 @@ const handleSSE: RequestHandler = (req: Request, res: Response): void => {
     Connection: "keep-alive",
   });
 
-  const fileName = req.query.fileName as string | undefined;
-  if (!fileName) {
-    res.write('data: {"error": "No fileName provided"}\n\n');
+  const clientId = req.query.clientId as string;
+  // TODO: send client ID to AWS
+  if (!clientId) {
+    res.write('data: {"error": "No clientId provided"}\n\n');
     res.end();
     return;
   }
 
-  const bucketName = process.env.S3_NAME_BUCKET;
-  if (!bucketName) {
-    res.write('data: {"error": "Bucket name is undefined"}\n\n');
-    res.end();
-    return;
-  }
-
-  const checkFileExists = setInterval(() => {
-    console.log(fileName);
-    const params = { Bucket: bucketName, Key: fileName };
-    s3.headObject(params, (err, metadata) => {
-      if (err) {
-        if (err.code === "NotFound") {
-          res.write(
-            `data: ${JSON.stringify({ time: new Date().toISOString(), message: "File not found or still processing..." })}\n\n`,
-          );
-        } else {
-          clearInterval(checkFileExists);
-          res.write(
-            `data: ${JSON.stringify({ time: new Date().toISOString(), error: "Error accessing file: " + err.message })}\n\n`,
-          );
-          res.end();
-        }
-      } else {
-        clearInterval(checkFileExists);
-        const csvFile = s3
-          .getObject({ Bucket: bucketName, Key: fileName })
-          .createReadStream();
-        const records: CsvRecord[] = [];
-        csvFile
-          .pipe(csv())
-          .on("data", (data: CsvRecord) => records.push(data))
-          .on("end", () => {
-            const sockpuppetData = calculateIdentityLikelihood(records);
-            const result = JSON.stringify({
-              time: new Date().toISOString(),
-              message: "Process completed",
-              resultsLPA: records,
-              sockpuppetData: sockpuppetData.data,
-            });
-            res.write(`data: ${result}\n\n`);
-            res.end();
-          })
-          .on("error", (error: { message: string }) => {
-            res.write(
-              `data: ${JSON.stringify({ time: new Date().toISOString(), error: "Error processing file: " + error.message })}\n\n`,
-            );
-            res.end();
-          });
-      }
-    });
-  }, 25000); // Check every 2.5 seconds
+  clients.set(clientId, res);
 
   req.on("close", () => {
-    clearInterval(checkFileExists);
+    clients.delete(clientId);
     res.end();
   });
 };
 
-export default handleSSE;
+const notify_SSE: RequestHandler = (req: Request, res: Response) => {
+  const { bucketName, fileName, clientId } = req.body;
+
+  if (!clientId || !clients.has(clientId)) {
+    res.status(400).send('Invalid clientId or client not connected');
+    return;
+  }
+
+  try {
+    const params = { Bucket: bucketName, Key: fileName };
+    const csvFile = s3.getObject(params).createReadStream();
+    const records: CsvRecord[] = [];
+
+    csvFile
+      .pipe(csv())
+      .on("data", (data: CsvRecord) => records.push(data))
+      .on("end", () => {
+        const sockpuppetData = calculateIdentityLikelihood(records);
+        const result = JSON.stringify({
+          time: new Date().toISOString(),
+          message: "Process completed",
+          resultsLPA: records,
+          sockpuppetData: sockpuppetData.data,
+        });
+
+        const client = clients.get(clientId);
+        if (client) {
+          client.write(`data: ${result}\n\n`);
+        }
+
+        res.status(200).send("Notification received and data sent to client");
+      })
+      .on("error", (error: unknown) => {
+        const client = clients.get(clientId);
+        if (client) {
+          if (error instanceof Error) {
+            client.write(
+              `data: ${JSON.stringify({ time: new Date().toISOString(), error: "Error processing file: " + error.message })}\n\n`,
+            );
+          } else {
+            client.write(
+              `data: ${JSON.stringify({ time: new Date().toISOString(), error: "Unknown error occurred" })}\n\n`,
+            );
+          }
+        }
+
+        res.status(500).send("Error processing notification");
+      });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).send(`Error processing notification: ${error.message}`);
+    } else {
+      res.status(500).send("Unknown error occurred");
+    }
+  }
+};
+
+export { handleSSE, notify_SSE };

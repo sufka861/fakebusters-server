@@ -6,9 +6,10 @@ import { exec } from "child_process";
 import { v4 as uuid } from "uuid";
 import AWS from "aws-sdk";
 import { notifyUserByEmail } from "../utils/sendEmail/sendMail";
-import { getProfileByUsername, createProfile } from "../dal/profileModel";
-import { createResult } from "../dal/lpaModel";
+
+import { getProfileByFilter, createProfile } from "../dal/profileModel";
 import { get_user } from "./twitterController";
+import { createResult } from "../dal/lpaModel";
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
@@ -30,8 +31,10 @@ const handlePreprocessing: RequestHandler = async (
     fs.mkdirSync(tempDir, { recursive: true });
   }
 
+
   const { signature } = req.body;
   const metadata = { signature };
+
 
   const filesData = req.files as Express.Multer.File[];
   const filePaths: string[] = [];
@@ -62,12 +65,17 @@ const handlePreprocessing: RequestHandler = async (
     const users = output_JSON.author_username;
 
     for (const user_name of users) {
-      const user_from_db = await getProfileByUsername(user_name);
+      console.log("user name=  " + user_name)
+      const filter_in_db = {"data.username": user_name}
+      const filter_error = {"errors.value": user_name}
+      const user_from_db = await getProfileByFilter(filter_in_db) || await getProfileByFilter(filter_error);;
       if (user_from_db == null) {
+        // Call x API to get this user and save it in db    
         const user_from_twitter = await get_user(user_name);
-        await createProfile(user_from_twitter);
-      } else {
-        console.log(`User ${user_from_db} already exists`);
+        createProfile(user_from_twitter);
+        }
+      else {
+        console.log(`user ${user_name} already exists`);
       }
     }
 
@@ -75,7 +83,12 @@ const handlePreprocessing: RequestHandler = async (
 
     await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
     filePaths.forEach((file) => fs.unlinkSync(file));
-    await createResult(output_JSON);
+    /* insert categories of file to db */ 
+    const keyToRemove = "author_username";
+    const updatedJsonObj = removeElementFromJson(output_JSON, keyToRemove);
+    updatedJsonObj.file_id = newFileName;
+    console.log(updatedJsonObj)
+    createResult(updatedJsonObj);
     res.setHeader("Content-Type", "application/json");
     return res.send(output);
   } catch (err) {
@@ -136,5 +149,11 @@ const handleMail: RequestHandler = async (req, res) => {
     res.status(500).send(err);
   }
 };
+
+function removeElementFromJson(jsonObj: any, keyToRemove: string): any {
+  const { [keyToRemove]: _, ...updatedJsonObj } = jsonObj;
+  return updatedJsonObj;
+}
+
 
 export { handlePreprocessing, handleMail };

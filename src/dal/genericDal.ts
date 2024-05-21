@@ -31,7 +31,7 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     if (document) {
       return document;
     }
-    await this.client.close();
+    // await this.client.close();
     return null;
   }
 
@@ -43,9 +43,10 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     } catch (err) {
       console.error(err);
       return null;
-    } finally {
-      await this.client.close();
-    }
+    } 
+    // finally {
+    //   await this.client.close();
+    // }
   }
 
   async create(document: any): Promise<T> {
@@ -56,9 +57,10 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     } catch (err) {
       console.error(err);
       throw err;
-    } finally {
-      await this.client.close();
     }
+    // finally {
+    //   await this.client.close();
+    // }
   }
 }
 

@@ -100,8 +100,8 @@ const runPythonScript = (
   args: string[],
   outputFileName: string
 ): Promise<string> => {
-  const scriptPath = getPythonScriptPath(); // Ensure this path is correct
-  const pythonExecutable = path.join(process.cwd(), "myenv", "bin", "python"); // Path to the Python executable in the virtual environment
+  const scriptPath = getPythonScriptPath(); 
+  const pythonExecutable = path.join(process.cwd(), "myenv", "bin", "python"); 
   const argsString = args.map((filePath) => `"${filePath}"`).join(" ");
   const command = `${pythonExecutable} "${scriptPath}" "${outputFileName}" ${argsString}`;
   console.log(`Executing command: ${command}`); // This logs the exact command
@@ -171,3 +171,4 @@ function removeElementFromJson(jsonObj: any, keyToRemove: string): any {
 
 
 export { handlePreprocessing, handleMail };
+createResult

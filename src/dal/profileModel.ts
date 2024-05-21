@@ -29,10 +29,7 @@ const getProfileById = async (id: string) => {
 };
 
 const getProfileByFilter = async (filter: any) => {
-  console.log(filter)
-   const user=  await profileDAL.getByFilter( filter );
-   console.log(user)
-   return user;
+   return await profileDAL.getByFilter( filter );
 };
 
 const createProfile = async (body: any) => {

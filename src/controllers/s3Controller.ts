@@ -10,7 +10,6 @@ import { getProfileByFilter, createProfile } from "../dal/profileModel";
 import { get_user } from "./twitterController";
 import { createResult } from "../dal/lpaModel";
 
-
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
   const basePath = path.join(process.cwd(), "src", "python");
@@ -61,7 +60,6 @@ const handlePreprocessing: RequestHandler = async (
     const output = await runPythonScript(filePaths, newFileName);
     const output_JSON = JSON.parse(output);
     const users = output_JSON.author_username;
-    const categories = output_JSON.categories;
     console.log(users.length()) 
     for (const user_name of users) {
       const filter_in_db = {"data.username": user_name}
@@ -83,13 +81,12 @@ const handlePreprocessing: RequestHandler = async (
 
     await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
     filePaths.forEach((file) => fs.unlinkSync(file));
-      /* insert categories of file to db */ 
-      const new_cat = {
-        file_id: newFileName,
-        categories: categories
-    }
-    createResult(new_cat);
-
+    /* insert categories of file to db */ 
+    const keyToRemove = "author_username";
+    const updatedJsonObj = removeElementFromJson(output_JSON, keyToRemove);
+    updatedJsonObj.file_id = newFileName;
+    console.log(updatedJsonObj)
+    createResult(updatedJsonObj);
     res.setHeader("Content-Type", "application/json");
     return res.send(output);
   } catch (err) {
@@ -166,5 +163,11 @@ const handleMail: RequestHandler = async (req, res) => {
     res.status(500).send(err);
   }
 };
+
+function removeElementFromJson(jsonObj: any, keyToRemove: string): any {
+  const { [keyToRemove]: _, ...updatedJsonObj } = jsonObj;
+  return updatedJsonObj;
+}
+
 
 export { handlePreprocessing, handleMail };

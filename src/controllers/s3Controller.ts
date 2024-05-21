@@ -6,22 +6,21 @@ import { exec } from "child_process";
 import { v4 as uuid } from "uuid";
 import AWS from "aws-sdk";
 import { notifyUserByEmail } from "../utils/sendEmail/sendMail";
+
 import { getProfileByFilter, createProfile } from "../dal/profileModel";
 import { get_user } from "./twitterController";
 import { createResult } from "../dal/lpaModel";
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
-  const basePath = path.join(process.cwd(), "src", "python");
-  console.log(basePath);
-  return path.join(basePath, "Preprocessing.py");
+  const basePath = path.join(process.cwd(), 'src', 'python');
+  return path.join(basePath, 'Preprocessing.py');
 }
 
 const handlePreprocessing: RequestHandler = async (
   req: Request,
   res: Response
 ) => {
-  console.log("inside handlePreprocessing");
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
   }
@@ -32,35 +31,39 @@ const handlePreprocessing: RequestHandler = async (
     fs.mkdirSync(tempDir, { recursive: true });
   }
 
+
+  const { signature } = req.body;
+  const metadata = { signature };
+
+
   const filesData = req.files as Express.Multer.File[];
   const filePaths: string[] = [];
   const originalFileNames: string[] = [];
-  
-  const requestId = uuid();
+
   for (const file of filesData) {
     if (file.mimetype !== "text/csv") {
       return res.status(400).send("All files must be CSVs.");
     }
-    
+
     const originalFileNameWithoutExtension = path.parse(file.originalname).name;
     originalFileNames.push(originalFileNameWithoutExtension);
-    
+
+    const requestId = uuid();
     const fileName = `${requestId}-${originalFileNameWithoutExtension}.csv`;
     const filePath = path.join(tempDir, fileName);
     await fs.promises.writeFile(filePath, file.buffer);
     filePaths.push(filePath);
   }
 
-  const { signature } = req.body;
-  const metadata = { signature };
-  
   const combinedFileName = originalFileNames.join("+");
   const newFileName = `${combinedFileName}_${uuid()}.csv`;
+  const scriptPath = getPythonScriptPath(); // Use the getPythonScriptPath function here
+
   try {
-    const output = await runPythonScript(filePaths, newFileName);
+    const output = await runPythonScript(scriptPath, filePaths, newFileName); // Pass the script path as the first argument
     const output_JSON = JSON.parse(output);
     const users = output_JSON.author_username;
-    console.log(users.length) 
+
     for (const user_name of users) {
       console.log("user name=  " + user_name)
       const filter_in_db = {"data.username": user_name}
@@ -95,43 +98,29 @@ const handlePreprocessing: RequestHandler = async (
   }
 };
 
-const runPythonScript = (
-  args: string[],
-  outputFileName: string
-): Promise<string> => {
-  const scriptPath = getPythonScriptPath(); 
-  const pythonExecutable = path.join(process.cwd(), "myenv", "bin", "python"); 
-  const argsString = args.map((filePath) => `"${filePath}"`).join(" ");
-  const command = `${pythonExecutable} "${scriptPath}" "${outputFileName}" ${argsString}`;
-  console.log(`Executing command: ${command}`); // This logs the exact command
-
+function runPythonScript(scriptPath: string, args: string[], outputFileName: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    exec(
-      command,
-      { env: { ...process.env, PYTHONIOENCODING: "utf-8" } },
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error("Execution error:", error);
-          reject(error.message);
-          return;
-        }
-        if (stderr && !stderr.toLowerCase().includes("downloading")) {
-          console.error("Script error:", stderr);
-          reject(stderr);
-          return;
-        }
-        resolve(stdout.trim());
+    const command = `python "${scriptPath}" "${outputFileName}" ${args.join(' ')}`;
+    const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
+    exec(command, { env }, (error, stdout, stderr) => {
+      if (error) {
+        reject(error.message);
+        return;
       }
-    );
+      if (stderr) {
+        reject(stderr);
+        return;
+      }
+      resolve(stdout.trim());
+    });
   });
-};
+}
 
 const uploadFileToS3Direct = async (
   filePath: string,
   fileName: string,
   metadata: any
 ): Promise<void> => {
-  console.log("Uploading file to S3:", filePath, fileName);
   try {
     const fileBuffer = fs.readFileSync(filePath);
     const s3 = new AWS.S3();
@@ -143,16 +132,14 @@ const uploadFileToS3Direct = async (
       Metadata: metadata,
     };
 
-    // Upload the file to S3
     const data = await s3.putObject(params).promise();
-
     console.log("Object uploaded successfully:", data);
   } catch (err) {
     console.error("Error uploading object:", err);
     throw err;
   }
 };
-//Test for sending an email, add to the function of receiving the results after a database has been built
+
 const handleMail: RequestHandler = async (req, res) => {
   try {
     const user = { name: "racheli", email: "dkracheli135@gmail.com" };
@@ -170,4 +157,3 @@ function removeElementFromJson(jsonObj: any, keyToRemove: string): any {
 
 
 export { handlePreprocessing, handleMail };
-createResult

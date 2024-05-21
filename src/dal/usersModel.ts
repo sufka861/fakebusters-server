@@ -12,7 +12,7 @@ interface User {
 const usersDAL = new GenericDAL<User>(process.env.USERS_COLLECTION_NAME || "");
 
 const getUsers = async () => {
-    return await usersDAL.getAll();
+    console.log(await usersDAL.getAll());
 };
 
 const getUserById = async(id: string) => {

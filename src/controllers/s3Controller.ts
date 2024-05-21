@@ -62,17 +62,16 @@ const handlePreprocessing: RequestHandler = async (
     const users = output_JSON.author_username;
     console.log(users.length) 
     for (const user_name of users) {
+      console.log("user name=  " + user_name)
       const filter_in_db = {"data.username": user_name}
-      const user_from_db = await getProfileByFilter(filter_in_db);
+      const filter_error = {"errors.value": user_name}
+      const user_from_db = await getProfileByFilter(filter_in_db) || await getProfileByFilter(filter_error);;
       if (user_from_db == null) {
-        // Call x API to get this user and save it in db
-        const filter_error = {"errors.value": user_name}
-        const user_from_db = await getProfileByFilter(filter_error);
-        if (user_from_db == null) {      
-          const user_from_twitter = await get_user(user_name);
+        // Call x API to get this user and save it in db    
+        const user_from_twitter = await get_user(user_name);
         createProfile(user_from_twitter);
-        } 
-      } else {
+        }
+      else {
         console.log(`user ${user_name} already exists`);
       }
     }

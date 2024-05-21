@@ -1,4 +1,4 @@
-import { Collection, MongoClient, ObjectId } from "mongodb";
+import { Collection, DeleteResult, MongoClient, ObjectId } from "mongodb";
 import { Filter } from "mongodb";
 
 class GenericDAL<T extends { _id?: ObjectId }> {
@@ -9,57 +9,32 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     this.client = new MongoClient(process.env.DB_CONN_STRING || "");
     const db = this.client.db(process.env.DB_NAME);
     this.collection = db.collection<T>(collectionName);
+    this.client.connect();
   }
 
   async getAll(): Promise<T[]> {
-    try {
-      await this.client.connect();
-      const documents = (await this.collection.find({}).toArray()) as T[];
-      return documents;
-    } catch (err) {
-      console.error(err);
-      return [];
-    } finally {
-      await this.client.close();
-    }
+      return (await this.collection.find({}).toArray()) as T[];
   }
 
   async getById(id: string): Promise<T | null> {
-    await this.client.connect();
     const filter: Filter<T> = { _id: new ObjectId(id) } as Filter<T>;
-    const document = (await this.collection.findOne(filter)) as T;
-    if (document) {
-      return document;
-    }
-    await this.client.close();
-    return null;
+    return (await this.collection.findOne(filter)) as T;
   }
 
-  async getByFilter(filter: Filter<T>): Promise<T | null> {
-    try {
-      await this.client.connect();
+  async getByFilter(filter: any): Promise<T | null> {
       const document = await this.collection.findOne(filter);
       return document as T | null;
-    } catch (err) {
-      console.error(err);
-      return null;
-    } finally {
-      await this.client.close();
-    }
   }
 
   async create(document: any): Promise<T> {
-    try {
-      await this.client.connect();
       const result = await this.collection.insertOne(document);
       return { ...document, _id: result.insertedId };
-    } catch (err) {
-      console.error(err);
-      throw err;
-    } finally {
-      await this.client.close();
-    }
   }
+
+  async deleteMany(): Promise<DeleteResult> {
+    return await this.collection.deleteMany({});
+    }
 }
+
 
 export { GenericDAL };

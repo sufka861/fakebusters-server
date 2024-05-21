@@ -28,12 +28,19 @@ const getProfileById = async (id: string) => {
     return await profileDAL.getById(id);
 };
 
-const getProfileByUsername = async (username: string) => {
-    return await profileDAL.getByFilter({ username: username });
+const getProfileByFilter = async (filter: any) => {
+  console.log(filter)
+   const user=  await profileDAL.getByFilter( filter );
+   console.log(user)
+   return user;
 };
 
 const createProfile = async (body: any) => {
     return await profileDAL.create(body);
 };
 
-export { getProfiles, getProfileById, createProfile, getProfileByUsername };
+const deleteProfiles = async () => {
+  return await profileDAL.deleteMany();
+};
+
+export { getProfiles, getProfileById, createProfile, getProfileByFilter, deleteProfiles };

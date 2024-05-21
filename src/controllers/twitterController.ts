@@ -8,11 +8,11 @@ const get_user =async (username: string) => {
       Authorization: authorizationHeader
     }
   };
-
   const response = await fetch(url, options);
   const data = await response.json();
   return data;
 };
+
 
 
 export { get_user };

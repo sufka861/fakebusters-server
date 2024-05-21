@@ -6,8 +6,10 @@ import { exec } from "child_process";
 import { v4 as uuid } from "uuid";
 import AWS from "aws-sdk";
 import { notifyUserByEmail } from "../utils/sendEmail/sendMail";
-import { getProfileByUsername, createProfile } from "../dal/profileModel";
+import { getProfileByFilter, createProfile } from "../dal/profileModel";
 import { get_user } from "./twitterController";
+import { createResult } from "../dal/lpaModel";
+
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
@@ -31,7 +33,6 @@ const handlePreprocessing: RequestHandler = async (
     fs.mkdirSync(tempDir, { recursive: true });
   }
 
-  
   const filesData = req.files as Express.Multer.File[];
   const filePaths: string[] = [];
   const originalFileNames: string[] = [];
@@ -60,28 +61,34 @@ const handlePreprocessing: RequestHandler = async (
     const output = await runPythonScript(filePaths, newFileName);
     const output_JSON = JSON.parse(output);
     const users = output_JSON.author_username;
+    const categories = output_JSON.categories;
+    console.log(users.length()) 
     for (const user_name of users) {
-      const user_from_db = await getProfileByUsername(user_name);
+      const filter_in_db = {"data.username": user_name}
+      const user_from_db = await getProfileByFilter(filter_in_db);
       if (user_from_db == null) {
-        /*call x api to get this user and save it in db*/
-        const user_from_twitter = await get_user(user_name);
+        // Call x API to get this user and save it in db
+        const filter_error = {"errors.value": user_name}
+        const user_from_db = await getProfileByFilter(filter_error);
+        if (user_from_db == null) {      
+          const user_from_twitter = await get_user(user_name);
         createProfile(user_from_twitter);
+        } 
       } else {
-        console.log(`user ${user_from_db} already exists`);
+        console.log(`user ${user_name} already exists`);
       }
     }
-    for (const user_name of users) {
-      const user_from_db = getProfileByUsername(user_name);
-      if (user_from_db == null) {
-        /*call x api to get this user and save it in db*/
-        const user_from_twitter = get_user(user_name);
-        createProfile(user_from_twitter);
-      }
-    }
+
     const intermediateFilePath = path.join(tempDir, newFileName);
 
     await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
     filePaths.forEach((file) => fs.unlinkSync(file));
+      /* insert categories of file to db */ 
+      const new_cat = {
+        file_id: newFileName,
+        categories: categories
+    }
+    createResult(new_cat);
 
     res.setHeader("Content-Type", "application/json");
     return res.send(output);

@@ -60,7 +60,7 @@ const handlePreprocessing: RequestHandler = async (
     const output = await runPythonScript(filePaths, newFileName);
     const output_JSON = JSON.parse(output);
     const users = output_JSON.author_username;
-    console.log(users.length()) 
+    console.log(users.length) 
     for (const user_name of users) {
       const filter_in_db = {"data.username": user_name}
       const user_from_db = await getProfileByFilter(filter_in_db);

@@ -7,6 +7,7 @@ import { v4 as uuid } from "uuid";
 import AWS from "aws-sdk";
 import { notifyUserByEmail } from "../utils/sendEmail/sendMail";
 import { getProfileByUsername, createProfile } from "../dal/profileModel";
+import {createResult} from "../dal/lpaModel"
 import { get_user } from "./twitterController";
 
 // Helper to get the correct Python script path
@@ -80,7 +81,7 @@ const handlePreprocessing: RequestHandler = async (
 
     await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
     filePaths.forEach((file) => fs.unlinkSync(file));
-
+    await createResult(output_JSON);
     res.setHeader("Content-Type", "application/json");
     return res.send(output);
   } catch (err) {
@@ -94,8 +95,8 @@ const runPythonScript = (
   args: string[],
   outputFileName: string
 ): Promise<string> => {
-  const scriptPath = getPythonScriptPath(); // Ensure this path is correct
-  const pythonExecutable = path.join(process.cwd(), "myenv", "bin", "python"); // Path to the Python executable in the virtual environment
+  const scriptPath = getPythonScriptPath(); 
+  const pythonExecutable = path.join(process.cwd(), "myenv", "bin", "python"); 
   const argsString = args.map((filePath) => `"${filePath}"`).join(" ");
   const command = `${pythonExecutable} "${scriptPath}" "${outputFileName}" ${argsString}`;
   console.log(`Executing command: ${command}`); // This logs the exact command
@@ -158,3 +159,4 @@ const handleMail: RequestHandler = async (req, res) => {
 };
 
 export { handlePreprocessing, handleMail };
+createResult

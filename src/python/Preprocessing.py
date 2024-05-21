@@ -91,9 +91,9 @@ if __name__ == "__main__":
     output_file_name = sys.argv[1]
     file_paths = sys.argv[2:]
 
-    # Download necessary NLTK resources
-    nltk.download('stopwords')
-    nltk.download('punkt')  # for word_tokenize
+    # # Download necessary NLTK resources
+    # nltk.download('stopwords')
+    # nltk.download('punkt')  # for word_tokenize
     
     analysis_results = process_and_analyze(file_paths, output_file_name)
     print(analysis_results)

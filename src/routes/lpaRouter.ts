@@ -1,12 +1,12 @@
 import express from "express";
-import { getResults, getResultById, createResult } from "../dal/lpaModel";
-import {getAllResult} from "../controllers/lpaController"
+import { getResultById, createResult } from "../repositories/lpa.repository";
+import {removeResults, getAllResult} from "../controllers/lpaController"
 
 const usersRouter = express.Router();
 
-usersRouter.get("/", getResults);
+usersRouter.get("/", getAllResult);
 usersRouter.get("/:id", getResultById);
 usersRouter.post("/", createResult);
-usersRouter.get("/result-list", getAllResult);
+usersRouter.delete("/", removeResults);
 
 export default usersRouter;

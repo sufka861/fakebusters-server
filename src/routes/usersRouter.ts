@@ -1,5 +1,5 @@
 import express from "express";
-import { getUsers, getUserById, createUser } from "../dal/usersModel";
+import { getUsers, getUserById, createUser } from "../repositories/users.repository";
 
 const usersRouter = express.Router();
 

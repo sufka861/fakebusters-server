@@ -77,7 +77,7 @@ def process_and_analyze(file_paths, output_file_name):
         'word': total_elements,
         'freq': total_rows,
         'account': total_documents,
-        'output_file_name': output_file_name,
+        'project_id': output_file_name,
         'author_username': authors_with_enough_posts
     }
 

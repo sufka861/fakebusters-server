@@ -6,9 +6,9 @@ import { exec } from "child_process";
 import { v4 as uuid } from "uuid";
 import AWS from "aws-sdk";
 import { notifyUserByEmail } from "../utils/sendEmail/sendMail";
-import { getProfileByFilter, createProfile } from "../dal/profileModel";
+import { getProfileByFilter, createProfile } from "../repositories/profile.repository";
 import { get_user } from "./twitterController";
-import { createResult } from "../dal/lpaModel";
+import { createResult } from "../repositories/lpa.repository";
 
 // Helper to get the correct Python script path
 function getPythonScriptPath() {
@@ -84,7 +84,6 @@ const handlePreprocessing: RequestHandler = async (
     const keyToRemove = "author_username";
     const updatedJsonObj = removeElementFromJson(output_JSON, keyToRemove);
     updatedJsonObj.file_id = newFileName;
-    console.log(updatedJsonObj)
     createResult(updatedJsonObj);
     res.setHeader("Content-Type", "application/json");
     return res.send(output);

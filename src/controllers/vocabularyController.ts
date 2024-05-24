@@ -20,8 +20,8 @@ const getAllVocabularies: RequestHandler = async (req: Request, res: Response) =
 
 const getVocabulary: RequestHandler = async (req: Request, res: Response) => {
     try {
-        const name = req.query.name as string;
-        const data = await getVocabularyByFilter({ name});
+        const filter = req.query.body as string;
+        const data = await getVocabularyByFilter({ filter});
         res.status(200).send(data);
     } catch (err: any) { 
         res.status(400).send(err.message);

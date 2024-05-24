@@ -13,6 +13,7 @@ import lpaRouter from "./routes/lpaRouter";
 import profileRouter from "./routes/profilesRouter";
 import dotenv from "dotenv";
 import twitterRouter from "./routes/twitterRouter";
+import vocabularyRouter from "./routes/vocabularyRouter";
 
 dotenv.config();
 
@@ -33,5 +34,6 @@ app.use("/api/twitter/", twitterRouter);
 app.use("/api/users/", usersRouter);
 app.use("/api/lpa/", lpaRouter);
 app.use("/api/profiles/", profileRouter);
+app.use("/api/vocabularies/", vocabularyRouter);
 
 export default app;

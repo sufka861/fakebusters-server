@@ -17,7 +17,7 @@ def preprocess_text(text, stop_words):
 
 def process_and_analyze(file_paths, output_file_name):
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    stopwords_file = os.path.join(script_dir, 'data/hebrew_stop_words.txt')
+    stopwords_file = os.path.join(script_dir, 'data/vocabularyDefault.txt')
     output_dir = os.path.join(script_dir, 'data')
 
     with open(stopwords_file, 'r', encoding='utf-8') as f:

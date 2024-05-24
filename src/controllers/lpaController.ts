@@ -13,6 +13,7 @@ const removeResults: RequestHandler = async (req, res) => {
 
 const getAllResult: RequestHandler = async (req, res) => {
     try {
+      console.log("all result")
       const resultList = await getResults(); 
       console.log(resultList);
       res.status(200).send(resultList)

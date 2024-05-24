@@ -9,6 +9,8 @@ const getVocabularyByFilter = async(filter: any) => {
 };
 
 const createVocabulary = async (body: any) => {
+    const date = new Date();
+    body.date_modified = date;
     return await vocabularyModel.create(body);
 
 };

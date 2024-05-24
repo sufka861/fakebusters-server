@@ -4,13 +4,17 @@ const getUsers = async () => {
     console.log(await usersModel.getAll());
 };
 
-const getUserById = async(id: string) => {
-    return await usersModel.getById(id);
+const getUserByFilter = async(filter: any) => {
+    return await usersModel.getByFilter(filter);
 };
 
+const deleteUser = async (body: any) => {
+    return await usersModel.deleteMany(body);
+
+};
 const createUser = async (body: any) => {
     return await usersModel.create(body);
 
 };
 
-export { getUsers, getUserById, createUser };
+export { getUsers, getUserByFilter, createUser,deleteUser };

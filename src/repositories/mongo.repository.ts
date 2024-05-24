@@ -1,7 +1,7 @@
 import { Collection, DeleteResult, MongoClient, ObjectId } from "mongodb";
 import { Filter } from "mongodb";
 
-class GenericDAL<T extends { _id?: ObjectId }> {
+class GenericDal<T extends { _id?: ObjectId }> {
   private collection: Collection<T>;
   private client: MongoClient;
 
@@ -10,6 +10,7 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     const db = this.client.db(process.env.DB_NAME);
     this.collection = db.collection<T>(collectionName);
     this.client.connect();
+    console.log(`connect to ${collectionName} collection in DB`)
   }
 
   async getAll(): Promise<T[]> {
@@ -21,7 +22,7 @@ class GenericDAL<T extends { _id?: ObjectId }> {
     return (await this.collection.findOne(filter)) as T;
   }
 
-  async getByFilter(filter: any): Promise<T | null> {
+  async getByFilter(filter: any= {}): Promise<T | null> {
       const document = await this.collection.findOne(filter);
       return document as T | null;
   }
@@ -31,10 +32,10 @@ class GenericDAL<T extends { _id?: ObjectId }> {
       return { ...document, _id: result.insertedId };
   }
 
-  async deleteMany(): Promise<DeleteResult> {
-    return await this.collection.deleteMany({});
+  async deleteMany(filter: {}): Promise<DeleteResult> {
+    return await this.collection.deleteMany(filter);
     }
 }
 
 
-export { GenericDAL };
+export { GenericDal };

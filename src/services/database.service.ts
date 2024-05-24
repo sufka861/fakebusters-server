@@ -1,25 +1,12 @@
-import { MongoClient, Db } from "mongodb";
+import { User } from "../models/users.model";
+import { GenericDal } from "../repositories/mongo.repository";
+import { Profile } from "../models/profile.model";
+import { Result } from "../models/lpa.model";
 
-let client: MongoClient | null = null;
-let db: Db | null = null;
+/* database connection */
+const usersModel = new GenericDal<User>(process.env.USERS_COLLECTION_NAME || "");
+const profileModel = new GenericDal<Profile>( process.env.PROFILES_COLLECTION_NAME || "");
+const lpaModel = new GenericDal<Result>(process.env.LPA_COLLECTION_NAME || "");
+const vocabularyModel = new GenericDal<Result>(process.env.VOC_COLLECTION_NAME || "");
 
-export async function connectToDatabase() {
-  try {
-    if (!client) {
-      client = new MongoClient(process.env.DB_CONN_STRING || "");
-      await client.connect();
-      db = client.db(process.env.DB_NAME);
-      console.log("Connected to MongoDB");
-    }
-  } catch (error) {
-    console.error("Error connecting to database:", error);
-    throw error; // Rethrow the error to handle it in the caller
-  }
-}
-
-export function getDatabase(): Db {
-  if (!db) {
-    throw new Error("Database not connected. Please connect to the database first.");
-  }
-  return db;
-}
+export {usersModel,profileModel,lpaModel,vocabularyModel}

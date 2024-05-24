@@ -1,5 +1,6 @@
 import { Request, Response, RequestHandler } from "express";
 import { createUser, getUsers, deleteUser, getUserByFilter } from "../repositories/users.repository";
+import { ObjectId } from "mongodb";
 
 const removeUser: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -18,10 +19,11 @@ const getAllUsers: RequestHandler = async (req: Request, res: Response) => {
     }
 };
 
-const getUser: RequestHandler = async (req: Request, res: Response) => {
+const getUserById: RequestHandler = async (req: Request, res: Response) => {
     try {
-        const name = req.query.name as string;
-        const data = await getUserByFilter({name});
+        const {_id} = req.params;    
+        const o_id = new ObjectId(_id);
+        const data = await getUserByFilter({_id:o_id});
         res.status(200).send(data);
     } catch (err: any) { 
         res.status(400).send(err.message);
@@ -39,4 +41,4 @@ const addUser: RequestHandler = async (req: Request, res: Response) => {
 };
 
 
-export {addUser, removeUser, getAllUsers, getUser}
+export {addUser, removeUser, getAllUsers, getUserById}

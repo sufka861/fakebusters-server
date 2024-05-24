@@ -13,7 +13,7 @@ interface Result {
   word: number;
   results: object[]
 }
-
+// תאריך
 const lpaDAL = new GenericDAL<Result>(process.env.LPA_COLLECTION_NAME || "");
 
 const getResults = async () => {
@@ -27,5 +27,6 @@ const getResultById = async ( id: string) => {
 const createResult = async (body: any) => {
     return await lpaDAL.create(body);
 };
+
 
 export { getResults, getResultById, createResult };

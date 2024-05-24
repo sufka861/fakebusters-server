@@ -22,10 +22,11 @@ class GenericDal<T extends { _id?: ObjectId }> {
     return (await this.collection.findOne(filter)) as T;
   }
 
-  async getByFilter(filter: any= {}): Promise<T | null> {
-      const document = await this.collection.findOne(filter);
-      return document as T | null;
-  }
+  async getByFilter(filter: any = {}): Promise<T[]> {
+    const documents = await this.collection.find(filter).toArray();
+    return documents as T[];
+}
+
 
   async create(document: any): Promise<T> {
       const result = await this.collection.insertOne(document);

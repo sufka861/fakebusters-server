@@ -20,8 +20,17 @@ const getAllProfiles: RequestHandler = async (req: Request, res: Response) => {
 
 const getProfileByUsername: RequestHandler = async (req: Request, res: Response) => {
     try {
-        const username = req.query.username as string;
-        const data = await getProfileByFilter({ username });
+        const {username} = req.query;
+        const data = await getProfileByFilter({ 'data.username': String(username)});
+        res.status(200).send(data);
+    } catch (err: any) { 
+        res.status(400).send(err.message);
+    }
+};
+const getProfileByErrorUsername: RequestHandler = async (req: Request, res: Response) => {
+    try {
+        const {username} = req.query;
+        const data = await getProfileByFilter({ 'errors.value': String(username)});
         res.status(200).send(data);
     } catch (err: any) { 
         res.status(400).send(err.message);
@@ -31,8 +40,6 @@ const getProfileByUsername: RequestHandler = async (req: Request, res: Response)
 const createNewProfile: RequestHandler = async (req: Request, res: Response) => {
     try {
         const profile = req.body;
-        console.log("&&&&&&&&&&&")
-        console.log(profile)
         const data = await createProfile(profile);
         res.status(200).send(data);
     } catch (err: any) { 
@@ -40,4 +47,4 @@ const createNewProfile: RequestHandler = async (req: Request, res: Response) => 
     }
 };
 
-export { removeProfiles,getAllProfiles,getProfileByUsername,createNewProfile };
+export { removeProfiles,getAllProfiles,getProfileByUsername,createNewProfile,getProfileByErrorUsername };

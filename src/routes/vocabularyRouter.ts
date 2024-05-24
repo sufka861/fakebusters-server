@@ -1,10 +1,19 @@
 import express from "express";
-import {getAllVocabularies, getVocabulary, removeVocabulary, addVocabulary} from "../controllers/vocabularyController"
+import {
+  getAllVocabularies,
+  getVocabularyById,
+  removeVocabulary,
+  addVocabulary,
+  getVocabularyByUser,
+  getDefaultVocabularyByUser,
+} from "../controllers/vocabularyController";
 
 const usersRouter = express.Router();
 
 usersRouter.get("/", getAllVocabularies);
-usersRouter.get("/:name", getVocabulary);
+usersRouter.get("/:_id", getVocabularyById);
+usersRouter.get("/vocabulary/:createdBy", getVocabularyByUser);
+usersRouter.get("/vocabularyDefault/:createdBy", getDefaultVocabularyByUser);
 usersRouter.post("/", addVocabulary);
 usersRouter.delete("/", removeVocabulary);
 

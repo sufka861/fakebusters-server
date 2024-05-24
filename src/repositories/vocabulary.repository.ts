@@ -1,7 +1,7 @@
 import { vocabularyModel } from "../services/database.service";
 
 const getVocabularies = async () => {
-    console.log(await vocabularyModel.getAll());
+    return (await vocabularyModel.getAll());
 };
 
 const getVocabularyByFilter = async(filter: any) => {

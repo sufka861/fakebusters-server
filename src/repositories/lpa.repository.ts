@@ -14,6 +14,9 @@ const createResult = async (body: any) => {
 const deleteResults = async (filter: any ={}) => {
     return await lpaModel.deleteMany(filter);
   };
+  const getResultsByFilter = async (filter: any) => {
+    return await lpaModel.getByFilter(filter);
+  };
 
-export { getResults, getResultById, createResult,deleteResults };
+export { getResults, getResultById, createResult,deleteResults,getResultsByFilter };
 

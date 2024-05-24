@@ -1,7 +1,15 @@
 
 import { RequestHandler } from "express";
-import { getResults } from "../dal/lpaModel";
+import { deleteResults, getResults } from "../repositories/lpa.repository";
 
+const removeResults: RequestHandler = async (req, res) => {
+  try {
+      await deleteResults(); 
+      res.status(200).send("All results have been deleted");
+  } catch (err) {
+      res.status(400).send(err);
+  }
+};
 
 const getAllResult: RequestHandler = async (req, res) => {
     try {
@@ -14,6 +22,5 @@ const getAllResult: RequestHandler = async (req, res) => {
       res.status(500).send(err);
     }
   };
-
   
-  export { getAllResult };
+  export { getAllResult ,removeResults};

@@ -115,4 +115,53 @@ async function processFiles(req: Request, tempDir: string): Promise<{ filePaths:
 }
 
 
+
+const handlePreprocessing: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
+    const fileName()
+  try {
+    const output = await runPythonScript(scriptPath, filePaths, newFileName); // Pass the script path as the first argument
+    const output_JSON = JSON.parse(output);
+    const users = output_JSON.author_username;
+
+    for (const user_name of users) {
+      console.log("user name=  " + user_name)
+      const filter_in_db = {"data.username": user_name}
+      const filter_error = {"errors.value": user_name}
+      const user_from_db = await getProfileByFilter(filter_in_db) || await getProfileByFilter(filter_error);;
+      if (user_from_db == null) {
+        // Call x API to get this user and save it in db    
+        const user_from_twitter = await get_user(user_name);
+        createProfile(user_from_twitter);
+        }
+      else {
+        console.log(`user ${user_name} already exists`);
+      }
+    }
+
+    const intermediateFilePath = path.join(tempDir, newFileName);
+
+    await uploadFileToS3Direct(intermediateFilePath, newFileName, metadata);
+    filePaths.forEach((file) => fs.unlinkSync(file));
+    /* insert categories of file to db */ 
+    const keyToRemove = "author_username";
+    const updatedJsonObj = removeElementFromJson(output_JSON, keyToRemove);
+    updatedJsonObj.file_id = newFileName;
+    console.log(updatedJsonObj)
+    createResult(updatedJsonObj);
+    res.setHeader("Content-Type", "application/json");
+    return res.send(output);
+  } catch (err) {
+    console.error("Error processing files:", err);
+    filePaths.forEach((file) => fs.unlinkSync(file));
+    return res.status(500).send("Error processing the files");
+  }
+};
+
+
+
+
+
 export {  handleNewProject, handleMail };

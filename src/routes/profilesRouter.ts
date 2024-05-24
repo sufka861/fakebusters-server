@@ -1,17 +1,13 @@
 import express from "express";
-import {
-  getProfiles,
-  getProfileById,
-  createProfile,
-} from "../dal/profileModel";
-import {deleteAllProfiles} from "../controllers/profilesController"
+
+import {removeProfiles, getAllProfiles, getProfileByUsername,createNewProfile} from "../controllers/profilesController"
 
 
 const usersRouter = express.Router();
 
-usersRouter.get("/", getProfiles);
-usersRouter.get("/:id", getProfileById);
-usersRouter.post("/", createProfile);
-usersRouter.delete("/", deleteAllProfiles);
+usersRouter.get("/", getAllProfiles);
+usersRouter.get("/:name", getProfileByUsername);
+usersRouter.post("/", createNewProfile);
+usersRouter.delete("/", removeProfiles);
 
 export default usersRouter;

@@ -1,4 +1,4 @@
-import { Collection, DeleteResult, MongoClient, ObjectId } from "mongodb";
+import { Collection, DeleteResult, MongoClient, ObjectId, UpdateResult } from "mongodb";
 import { Filter } from "mongodb";
 
 class GenericDal<T extends { _id?: ObjectId }> {
@@ -27,15 +27,22 @@ class GenericDal<T extends { _id?: ObjectId }> {
     return documents as T[];
 }
 
-
+async getOneByFilter(filter: any = {}): Promise<T | null> {
+  return (await this.collection.findOne(filter)) as T;
+}
   async create(document: any): Promise<T> {
       const result = await this.collection.insertOne(document);
       return { ...document, _id: result.insertedId };
   }
 
-  async deleteMany(filter: {}): Promise<DeleteResult> {
+  async deleteMany(filter:any= {}): Promise<DeleteResult> {
     return await this.collection.deleteMany(filter);
     }
+
+    async updateById(id:any= {},params:any={}): Promise<UpdateResult> {
+      console.log(id,params)
+      return await this.collection.updateOne(id,params);
+      }
 }
 
 

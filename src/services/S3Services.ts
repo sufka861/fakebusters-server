@@ -26,9 +26,9 @@ function runPythonScript(scriptPath: string, args: string[], outputFileName: str
     });
   }
 
-  function runPythonScriptPreprocessing(scriptPath: string, args: string, outputFileName: string): Promise<string> {
+  function runPythonScriptPreprocessing(scriptPath: string, filePath: string, outputFileName: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const command = `python "${scriptPath}" "${outputFileName}" ${args}`;
+      const command = `python "${scriptPath}" "${outputFileName}" "${filePath}"`;
       const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
       exec(command, { env }, (error, stdout, stderr) => {
         if (error) {

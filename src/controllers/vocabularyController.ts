@@ -6,6 +6,8 @@ import {
   getVocabularyByFilter,
   getVocabularies,
   createVocabulary,
+  getOneVocabularyByFilter,
+  updateVocabulary
 } from "../repositories/vocabulary.repository";
 import path from "path";
 
@@ -14,12 +16,27 @@ const removeVocabulary: RequestHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    await deleteVocabulary(req.body);
-    res.status(200).send("profiles have been deleted");
+    const data = await deleteVocabulary(req.body);
+    res.status(200).send(`vocabulary with id: ${data} has been deleted`);
   } catch (err) {
     res.status(400).send(err);
   }
-};
+};    
+
+const removeVocabularyById: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { _id } = req.params;
+    const o_id = new ObjectId(_id);
+    const data = await deleteVocabulary({ _id: o_id });
+    res.status(200).send(`vocabulary with id: ${data} has been deleted`);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};  
+
 const getAllVocabularies: RequestHandler = async (
   req: Request,
   res: Response
@@ -67,7 +84,24 @@ const getDefaultVocabularyByUser: RequestHandler = async (
     const { createdBy } = req.params;
     const filter = {
       createdBy: createdBy,
-      default: true,
+      is_default: true,
+    };
+    const data = await getOneVocabularyByFilter(filter);
+    res.status(200).send(data);
+  } catch (err: any) {
+    res.status(400).send(err.message);
+  }
+};
+
+const getNonDefaultVocabularyByUser: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { createdBy } = req.params;
+    const filter = {
+      createdBy: createdBy,
+      is_default: false,
     };
     const data = await getVocabularyByFilter(filter);
     res.status(200).send(data);
@@ -75,6 +109,7 @@ const getDefaultVocabularyByUser: RequestHandler = async (
     res.status(400).send(err.message);
   }
 };
+
 
 const addVocabulary: RequestHandler = async (req: Request, res: Response) => {
   try {
@@ -85,6 +120,22 @@ const addVocabulary: RequestHandler = async (req: Request, res: Response) => {
     res.status(400).send(err.message);
   }
 };
+
+const editVocabulary: RequestHandler = async (req: Request, res: Response) => {
+  try {
+    const {
+      params: { id },
+      body,
+    } = req;
+    const o_id = new ObjectId(id);
+    console.log(o_id)
+    const data = await updateVocabulary({ _id: o_id }, body);
+    res.status(200).send(data);
+  } catch (err: any) {
+    res.status(400).send(err.message);
+  }
+};
+
 
 const addDefaultVocabulary: RequestHandler = async (
   req: Request,
@@ -117,4 +168,7 @@ export {
   addVocabulary,
   getVocabularyByUser,
   getDefaultVocabularyByUser,
+  getNonDefaultVocabularyByUser,
+  removeVocabularyById,
+  editVocabulary
 };

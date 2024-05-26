@@ -1,6 +1,8 @@
 import sys
 import pandas as pd
 import json
+from collections import Counter
+import re
 
 def combine_csv_files(file_paths, output_path):
     combined_df_list = []
@@ -35,8 +37,26 @@ def analyze_posts_distribution(combined_df):
 def additional_analysis(combined_df):
     num_authors = combined_df['author_username'].nunique()
     words_per_author = combined_df.groupby('author_username')['text'].apply(lambda texts: sum(len(text.split()) for text in texts)).to_dict()
+    
+    if words_per_author:
+        max_words_author = max(words_per_author, key=words_per_author.get)
+        max_words = words_per_author[max_words_author]
+    else:
+        max_words_author = None
+        max_words = 0
+    
+    # Count word frequencies
+    all_texts = ' '.join(combined_df['text'].tolist())
+    words = re.findall(r'\b\w+\b', all_texts.lower())
+    word_counts = Counter(words)
+    most_common_words = word_counts.most_common(100)
 
-    return num_authors, words_per_author
+    return num_authors, max_words, words_per_author, most_common_words
+
+def calculate_average_words(words_per_author, num_authors):
+    total_words = sum(words_per_author.values())
+    average_words_per_user = total_words / num_authors if num_authors > 0 else 0
+    return average_words_per_user
 
 if __name__ == "__main__":
     output_path = sys.argv[1]
@@ -49,13 +69,16 @@ if __name__ == "__main__":
     try:
         combined_df = combine_csv_files(file_paths, output_path)
         posts_distribution = analyze_posts_distribution(combined_df)
-        num_authors, words_per_author = additional_analysis(combined_df)
+        num_authors, max_words, words_per_author, most_common_words = additional_analysis(combined_df)
+        average_words_per_user = calculate_average_words(words_per_author, num_authors)
 
         result = {
             "posts_distribution": posts_distribution,
             "num_authors": num_authors,
-            "words_per_author": words_per_author
-        }
+            "max_words": max_words,
+            "average_words_per_user": average_words_per_user,
+            "most_common_words": most_common_words
+            }
         
         print(json.dumps(result, indent=2))
     except Exception as e:

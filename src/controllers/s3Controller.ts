@@ -22,15 +22,15 @@ const handleNewProject: RequestHandler = async (req: Request, res: Response) => 
 
   try {
     const { filePaths, combinedFileName } = await processFiles(req, tempDir);
-    console.log(filePaths);
+    const vocabularyPath = path.resolve(process.cwd(), 'src', 'python', 'data', 'vocabularyDefault.txt');
+    const data = fs.readFileSync(vocabularyPath, 'utf8');
+    const vocabularyData = data.split('\n').map(line => line.trim()).filter(line => line.length > 0).map(word => ({ name: word }));
 
     const pythonScript = path.resolve(process.cwd(), 'src', 'python', "UplodeCSV.py");
-    console.log(pythonScript);
     const combinedFilePath = path.join(tempDir, combinedFileName);
 
     const pythonResult = await runPythonScript(pythonScript, filePaths, combinedFilePath);
     const postsDistribution = JSON.parse(pythonResult);
-    console.log(combinedFileName, postsDistribution);
 
     for (const filePath of filePaths) {
       try {
@@ -41,27 +41,21 @@ const handleNewProject: RequestHandler = async (req: Request, res: Response) => 
       }
     }
 
-    return res.json({ filePaths, combinedFileName, postsDistribution });
+    return res.json({ filePaths, combinedFileName, postsDistribution, vocabularyData });
   } catch (error) {
     console.error("Error in handleNewProject:", error);
     return res.status(500).send("Internal Server Error");
   }
 };
 
-
-const handleMail: RequestHandler = async (req, res) => {
-  try {
-    const user = { name: "racheli", email: "dkracheli135@gmail.com" };
-    notifyUserByEmail(user.name, user.email);
-    res.status(200).send("yesss");
-  } catch (err) {
-    res.status(500).send(err);
-  }
-};
-
 const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
   const { rowDataFileName, signature } = req.body;
-  const metadata = { signature };
+  const metadata = { signature: String(signature) }; 
+
+  if (!rowDataFileName) {
+    console.error("rowDataFileName is missing");
+    return res.status(400).send("rowDataFileName is required");
+  }
 
   const scriptPath = path.resolve(process.cwd(), 'src', 'python', "Preprocessing.py");
   const filePaths = path.resolve(process.cwd(), "src", "python", "data", rowDataFileName);
@@ -91,7 +85,6 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     const keyToRemove = "author_username";
     const updatedJsonObj = removeElementFromJson(output_JSON, keyToRemove);
     updatedJsonObj.file_id = newFileName;
-    console.log(updatedJsonObj);
     await createResult(updatedJsonObj);
 
     res.setHeader("Content-Type", "application/json");
@@ -128,5 +121,14 @@ async function processFiles(req: Request, tempDir: string): Promise<{ filePaths:
   return { filePaths, combinedFileName };
 }
 
+const handleMail: RequestHandler = async (req, res) => {
+  try {
+    const user = { name: "racheli", email: "dkracheli135@gmail.com" };
+    notifyUserByEmail(user.name, user.email);
+    res.status(200).send("yesss");
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
 
 export {  handleNewProject, handleMail, handlePreprocessing };

@@ -6,3 +6,5 @@ logs
 dist
 myenv
 src/X-api/twitter_keys.json
+src/controllers/structureController.ts
+src/routes/structureRouter.ts

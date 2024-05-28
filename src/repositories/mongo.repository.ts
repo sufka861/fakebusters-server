@@ -39,8 +39,9 @@ async getOneByFilter(filter: any = {}): Promise<T | null> {
     return await this.collection.deleteMany(filter);
     }
 
-    async updateById(id:any= {},params:any={}): Promise<UpdateResult> {
-      console.log(id,params)
+    async updateById(id:any,params:any): Promise<UpdateResult> {
+      console.log(id)
+      console.log(params)
       return await this.collection.updateOne(id,params);
       }
 }

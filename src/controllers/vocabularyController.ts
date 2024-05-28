@@ -136,6 +136,22 @@ const editVocabulary: RequestHandler = async (req: Request, res: Response) => {
   }
 };
 
+const getParamsVocabularyByUser: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { createdBy } = req.params;
+    const data = await getVocabularyByFilter({ createdBy: createdBy });
+    const result = data.map((data:any) => ({
+      _id: data._id,
+      name: data.name,
+    }));
+    res.status(200).send(result);
+  } catch (err: any) {
+    res.status(400).send(err.message);
+  }
+};
 
 const addDefaultVocabulary: RequestHandler = async (
   req: Request,
@@ -170,5 +186,6 @@ export {
   getDefaultVocabularyByUser,
   getNonDefaultVocabularyByUser,
   removeVocabularyById,
-  editVocabulary
+  editVocabulary,
+  getParamsVocabularyByUser
 };

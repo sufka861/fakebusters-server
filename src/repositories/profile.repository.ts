@@ -20,6 +20,11 @@ const createProfile = async (body: any) => {
 const deleteProfiles = async (filter: any = {}) => {
   return await profileModel.deleteMany(filter);
 };
+const updateProfile = async (id: any, params: any) => {
+  const updateParams = { $set: params };
+  return await profileModel.updateById(id, updateParams);
+};
+
 
 
 export {
@@ -28,4 +33,5 @@ export {
   createProfile,
   getProfileByFilter,
   deleteProfiles,
+  updateProfile
 };

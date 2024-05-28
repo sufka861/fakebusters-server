@@ -26,23 +26,28 @@ function runPythonScript(scriptPath: string, args: string[], outputFileName: str
     });
   }
 
-  function runPythonScriptPreprocessing(scriptPath: string, filePath: string, outputFileName: string): Promise<string> {
+  function runPythonScriptPreprocessing(scriptPath: string, args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
-      const command = `python "${scriptPath}" "${outputFileName}" "${filePath}"`;
-      const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
-      exec(command, { env }, (error, stdout, stderr) => {
-        if (error) {
-          reject(error.message);
-          return;
-        }
-        if (stderr) {
-          reject(stderr);
-          return;
-        }
-        resolve(stdout.trim());
-      });
+        const command = `python "${scriptPath}" ${args.map(arg => `"${arg}"`).join(' ')}`;
+        console.log(`Executing command: ${command}`);
+        const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
+
+        exec(command, { env }, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                reject(error.message);
+                return;
+            }
+            if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+                reject(stderr);
+                return;
+            }
+            console.log(`Stdout: ${stdout}`);
+            resolve(stdout.trim());
+        });
     });
-  }
+}
 
   const uploadFileToS3Direct = async (
     filePath: string,

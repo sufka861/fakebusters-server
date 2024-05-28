@@ -49,21 +49,48 @@ const handleNewProject: RequestHandler = async (req: Request, res: Response) => 
 };
 
 const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
-  const { rowDataFileName, signature } = req.body;
-  const metadata = { signature: String(signature) }; 
+  const params = req.body;
+  const metadata = { signature: String(params.signature) };
 
-  if (!rowDataFileName) {
+  if (!params.rowDataFileName) {
     console.error("rowDataFileName is missing");
     return res.status(400).send("rowDataFileName is required");
   }
 
-  const scriptPath = path.resolve(process.cwd(), 'src', 'python', "Preprocessing.py");
-  const filePaths = path.resolve(process.cwd(), "src", "python", "data", rowDataFileName);
-  const newFileName = `freq_${rowDataFileName}`;
+  const scriptPath = path.resolve(process.cwd(), 'src', 'python', 'Preprocessing.py');
+  const filePaths = path.resolve(process.cwd(), 'src', 'python', 'data', params.rowDataFileName);
+  const newFileName = `freq_${params.rowDataFileName}`;
+  const outputFilePath = path.resolve(process.cwd(), 'src', 'python', 'data', newFileName);
+
+  // Save the vocabulary JSON content to a file
+  const uniqueFileName = `vocabulary_${Date.now()}.json`;
+  const vocabularyFilePath = path.resolve(process.cwd(), 'src', 'python', 'data', uniqueFileName);
 
   try {
-    const output = await runPythonScriptPreprocessing(scriptPath, filePaths, newFileName);
-    const output_JSON = JSON.parse(output);
+    fs.writeFileSync(vocabularyFilePath, JSON.stringify(params.vocabulary));
+
+    const pythonParams = [
+      filePaths,
+      outputFilePath,
+      params.account_threshold,
+      params.wordThreshold,
+      params.isDroppingLinks,
+      params.isDroppingPunctuation,
+      params.showTblholdSettings,
+      vocabularyFilePath
+    ];
+
+    console.log("Start running python script");
+
+    const output = await runPythonScriptPreprocessing(scriptPath, pythonParams);
+    console.log("End running python script");
+
+    // Remove the vocabulary file after script execution
+    fs.unlinkSync(vocabularyFilePath);
+
+    // Remove debug information if present
+    const jsonStartIndex = output.indexOf('{');
+    const output_JSON = JSON.parse(output.substring(jsonStartIndex));
     const users = output_JSON.author_username;
 
     for (const user_name of users) {
@@ -79,8 +106,8 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
         console.log(`user ${user_name} already exists`);
       }
     }
-    const freqPaths = path.resolve(process.cwd(), "src", "python", "data", newFileName);
-    await uploadFileToS3Direct(freqPaths, newFileName, metadata);
+
+    await uploadFileToS3Direct(outputFilePath, newFileName, metadata);
 
     const keyToRemove = "author_username";
     const updatedJsonObj = removeElementFromJson(output_JSON, keyToRemove);
@@ -91,6 +118,12 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     return res.send(output);
   } catch (err) {
     console.error("Error processing files:", err);
+
+    // Ensure the vocabulary file is deleted even if an error occurs
+    if (fs.existsSync(vocabularyFilePath)) {
+      fs.unlinkSync(vocabularyFilePath);
+    }
+
     return res.status(500).send("Error processing the files");
   }
 };

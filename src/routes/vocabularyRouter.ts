@@ -9,6 +9,7 @@ import {
   getNonDefaultVocabularyByUser,
   removeVocabularyById,
   editVocabulary,
+  getParamsVocabularyByUser,
 } from "../controllers/vocabularyController";
 
 const vocabularyRouter = express.Router();
@@ -22,6 +23,7 @@ vocabularyRouter.post("/", addVocabulary);
 vocabularyRouter.post("/default", addDefaultVocabulary);
 vocabularyRouter.delete("/:_id", removeVocabularyById);
 vocabularyRouter.put('/:id', editVocabulary);
+vocabularyRouter.get("/params/:createdBy", getParamsVocabularyByUser);
 
 
 export default vocabularyRouter;

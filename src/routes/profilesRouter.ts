@@ -3,12 +3,12 @@ import express from "express";
 import {removeProfiles, getAllProfiles, getProfileByUsername,createNewProfile,getProfileByErrorUsername} from "../controllers/profilesController"
 
 
-const usersRouter = express.Router();
+const profilesRouter = express.Router();
 
-usersRouter.get("/", getAllProfiles);
-usersRouter.get("/profile", getProfileByUsername);
-usersRouter.get("/error", getProfileByErrorUsername);
-usersRouter.post("/", createNewProfile);
-usersRouter.delete("/", removeProfiles);
+profilesRouter.get("/", getAllProfiles);
+profilesRouter.get("/profile", getProfileByUsername);
+profilesRouter.get("/error", getProfileByErrorUsername);
+profilesRouter.post("/", createNewProfile);
+profilesRouter.delete("/", removeProfiles);
 
-export default usersRouter;
+export default profilesRouter;

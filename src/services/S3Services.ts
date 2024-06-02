@@ -4,9 +4,9 @@ import AWS from "aws-sdk";
 import fs from "fs";
 
 
-function runPythonScript(scriptPath: string, args: string[], outputFileName: string): Promise<string> {
+function  (scriptPath: string, args: string[], outputFileName: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const command = `python "${scriptPath}" "${outputFileName}" ${args.join(' ')}`;
+      const command = `python3 "${scriptPath}" "${outputFileName}" ${args.join(' ')}`;
       console.log(`Executing command: ${command}`);
       const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
       exec(command, { env }, (error, stdout, stderr) => {
@@ -28,7 +28,7 @@ function runPythonScript(scriptPath: string, args: string[], outputFileName: str
 
   function runPythonScriptPreprocessing(scriptPath: string, args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
-        const command = `python "${scriptPath}" ${args.map(arg => `"${arg}"`).join(' ')}`;
+        const command = `python3 "${scriptPath}" ${args.map(arg => `"${arg}"`).join(' ')}`;
         console.log(`Executing command: ${command}`);
         const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
 

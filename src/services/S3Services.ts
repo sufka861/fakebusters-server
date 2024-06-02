@@ -4,7 +4,7 @@ import AWS from "aws-sdk";
 import fs from "fs";
 
 
-function  (scriptPath: string, args: string[], outputFileName: string): Promise<string> {
+function runPythonScript(scriptPath: string, args: string[], outputFileName: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const command = `python3 "${scriptPath}" "${outputFileName}" ${args.join(' ')}`;
       console.log(`Executing command: ${command}`);

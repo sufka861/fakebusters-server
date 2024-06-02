@@ -9,6 +9,7 @@ const getResultById = async ( id: string) => {
 };
 
 const createResult = async (body: any) => {
+  body.date_created= new Date();
     return await lpaModel.create(body);
 };
 const deleteResults = async (filter: any ={}) => {

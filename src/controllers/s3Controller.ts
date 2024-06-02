@@ -77,15 +77,13 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
       params.isDroppingLinks,
       params.isDroppingPunctuation,
       params.showTblholdSettings,
-      vocabularyFilePath
+      vocabularyFilePath,
     ];
 
     console.log("Start running python script");
 
     const output = await runPythonScriptPreprocessing(scriptPath, pythonParams);
     console.log("End running python script");
-
-    // Remove the vocabulary file after script execution
     fs.unlinkSync(vocabularyFilePath);
 
     // Remove debug information if present

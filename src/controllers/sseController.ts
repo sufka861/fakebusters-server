@@ -55,6 +55,9 @@ const calculateIdentityLikelihood = (
 const clients: Map<string, Response> = new Map();
 
 const handleSSE: RequestHandler = (req: Request, res: Response): void => {
+  console.log("handleSSE")
+  console.log(req.query.fileName)
+
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",

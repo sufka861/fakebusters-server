@@ -47,6 +47,7 @@ const handleFile: RequestHandler = async (req: Request, res: Response) => {
 
       for await (const record of parser) {
           const { id, target_user_id } = record;
+
           if (!(id in nodesMap)) {
               nodesMap[id] = currentId++;
               nodes.push({ id: id, label: id, title: id });

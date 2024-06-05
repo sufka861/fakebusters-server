@@ -5,6 +5,7 @@ const getUsers = async () => {
 };
 
 const getUserByFilter = async(filter: any) => {
+    console.log(filter)
     return await usersModel.getByFilter(filter);
 };
 

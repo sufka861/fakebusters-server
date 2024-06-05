@@ -32,6 +32,7 @@ const getAllResult: RequestHandler = async (req, res) => {
     }
 };
 
+
 const addResult: RequestHandler = async (req, res) => {
   try {
       const result = req.body;

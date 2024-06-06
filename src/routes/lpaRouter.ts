@@ -5,9 +5,9 @@ import {removeResults, getAllResult,getResultsByProjectId,addResult, editResults
 const lpaRouter = express.Router();
 
 lpaRouter.get("/", getAllResult);
-lpaRouter.get("/:project_id", getResultsByProjectId);
+lpaRouter.get("/:file_id", getResultsByProjectId);
 lpaRouter.post("/", addResult);
 lpaRouter.delete("/", removeResults);
-lpaRouter.put('/:project_id', editResultsByProjectid);
+lpaRouter.put('/:file_id', editResultsByProjectid);
 
 export default lpaRouter;

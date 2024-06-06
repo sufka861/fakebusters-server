@@ -24,8 +24,8 @@ const getAllResult: RequestHandler = async (req, res) => {
   
   const getResultsByProjectId: RequestHandler = async (req, res) => {
     try {
-        const {project_id} = req.params;    
-        const data = await getResultsByFilter({ project_id: project_id});
+        const {file_id} = req.params;    
+        const data = await getResultsByFilter({ file_id: file_id});
         res.status(200).send(data);
     } catch (err: any) { 
         res.status(400).send(err.message);
@@ -46,10 +46,10 @@ const addResult: RequestHandler = async (req, res) => {
 const editResultsByProjectid: RequestHandler = async (req, res) => {
   try {
     const {
-      params: { project_id },
+      params: { file_id },
       body,
     } = req;
-    const data = await updateResults({ project_id: project_id }, body);
+    const data = await updateResults({ file_id: file_id }, body);
     res.status(200).send(data);
   } catch (err: any) {
     res.status(400).send(err.message);

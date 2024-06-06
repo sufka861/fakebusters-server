@@ -82,7 +82,7 @@ def process_and_analyze(file_paths, output_file_path, is_dropping_links, is_drop
             'word': total_elements,
             'freq': total_rows,
             'account': total_documents,
-            'project_id': output_file_path,
+            'file_id': output_file_path,
             'author_username': authors_with_enough_posts
         }
 

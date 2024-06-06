@@ -9,7 +9,7 @@ export interface Result {
     categories: string[];   // array of every word and its frequency
     data: number[];   // array of frequency of each word in correlation to the word's index
     word: number;   // number of words
-    project_id: string;   // result file name+uuid = analysis id
+    file_id: string;   // result file name+uuid = analysis id
     results: Object[];    // array of objects, each object: 2 profiles and distance
     vocabulary_id: ObjectId
 }

@@ -19,5 +19,10 @@ const deleteResults = async (filter: any ={}) => {
     return await lpaModel.getByFilter(filter);
   };
 
-export { getResults, getResultById, createResult,deleteResults,getResultsByFilter };
+  const updateResults = async (project_id: {}, params: {}) => {
+    const updateParams = { $set: params };
+    return await lpaModel.updateByFilter(project_id, updateParams);
+  };
+
+export { getResults, getResultById, createResult,deleteResults,getResultsByFilter,updateResults };
 

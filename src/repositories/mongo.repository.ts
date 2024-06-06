@@ -40,10 +40,12 @@ async getOneByFilter(filter: any = {}): Promise<T | null> {
     }
 
     async updateById(id:any,params:any): Promise<UpdateResult> {
-      console.log(id)
-      console.log(params)
       return await this.collection.updateOne(id,params);
       }
+
+      async updateByFilter(project_id:any,params:any): Promise<UpdateResult> {
+        return await this.collection.updateOne(project_id,params);
+        }
 }
 
 

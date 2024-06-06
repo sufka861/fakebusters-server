@@ -43,8 +43,8 @@ async getOneByFilter(filter: any = {}): Promise<T | null> {
       return await this.collection.updateOne(id,params);
       }
 
-      async updateByFilter(project_id:any,params:any): Promise<UpdateResult> {
-        return await this.collection.updateOne(project_id,params);
+      async updateByFilter(file_id:any,params:any): Promise<UpdateResult> {
+        return await this.collection.updateOne(file_id,params);
         }
 }
 

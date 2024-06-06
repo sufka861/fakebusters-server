@@ -1,6 +1,6 @@
 
 import { RequestHandler } from "express";
-import { createResult, deleteResults, getResults,getResultsByFilter } from "../repositories/lpa.repository";
+import { createResult, deleteResults, getResults,getResultsByFilter,updateResults } from "../repositories/lpa.repository";
 
 const removeResults: RequestHandler = async (req, res) => {
   try {
@@ -43,7 +43,20 @@ const addResult: RequestHandler = async (req, res) => {
   }
 };
 
+const editResultsByProjectid: RequestHandler = async (req, res) => {
+  try {
+    const {
+      params: { project_id },
+      body,
+    } = req;
+    const data = await updateResults({ project_id: project_id }, body);
+    res.status(200).send(data);
+  } catch (err: any) {
+    res.status(400).send(err.message);
+  }
+};
 
-  export { getAllResult ,removeResults,getResultsByProjectId,addResult};
+
+  export { getAllResult ,removeResults,getResultsByProjectId,addResult,editResultsByProjectid};
 
 

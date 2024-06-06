@@ -32,7 +32,29 @@ def analyze_posts_distribution(combined_df):
     posts_per_author_binned = pd.cut(posts_per_author_filtered, bins=bins, labels=labels, right=False).value_counts().sort_index()
     posts_distribution_dict = posts_per_author_binned.to_dict()
 
-    return posts_distribution_dict
+    words_distribution_dict = calculate_words_distribution(posts_per_author_filtered, combined_df, bins, labels)
+    
+    return posts_distribution_dict, words_distribution_dict
+
+def calculate_words_distribution(posts_per_author_filtered, combined_df, bins, labels):
+    words_per_author = combined_df.groupby('author_username')['text'].apply(lambda texts: sum(len(text.split()) for text in texts))
+    words_per_author_filtered = words_per_author[posts_per_author_filtered.index]
+    
+    words_distribution_dict = {label: 0 for label in labels}
+    counts_per_bin = {label: 0 for label in labels}
+    
+    for author, words_count in words_per_author_filtered.items():
+        num_posts = posts_per_author_filtered[author]
+        bin_index = pd.cut([num_posts], bins=bins, labels=labels, right=False)[0]
+        words_distribution_dict[bin_index] += words_count
+        counts_per_bin[bin_index] += 1
+    
+    # Calculate average words per bin
+    for label in labels:
+        if counts_per_bin[label] > 0:
+            words_distribution_dict[label] = round(words_distribution_dict[label] / counts_per_bin[label], 2)
+    
+    return words_distribution_dict
 
 def additional_analysis(combined_df):
     num_authors = combined_df['author_username'].nunique()
@@ -55,7 +77,7 @@ def additional_analysis(combined_df):
 
 def calculate_average_words(words_per_author, num_authors):
     total_words = sum(words_per_author.values())
-    average_words_per_user = total_words / num_authors if num_authors > 0 else 0
+    average_words_per_user = round(total_words / num_authors, 2) if num_authors > 0 else 0
     return average_words_per_user
 
 if __name__ == "__main__":
@@ -68,17 +90,18 @@ if __name__ == "__main__":
 
     try:
         combined_df = combine_csv_files(file_paths, output_path)
-        posts_distribution = analyze_posts_distribution(combined_df)
+        posts_distribution, words_distribution = analyze_posts_distribution(combined_df)
         num_authors, max_words, words_per_author, most_common_words = additional_analysis(combined_df)
         average_words_per_user = calculate_average_words(words_per_author, num_authors)
 
         result = {
             "posts_distribution": posts_distribution,
+            "words_distribution": words_distribution,
             "num_authors": num_authors,
             "max_words": max_words,
             "average_words_per_user": average_words_per_user,
             "most_common_words": most_common_words
-            }
+        }
         
         print(json.dumps(result, indent=2))
     except Exception as e:

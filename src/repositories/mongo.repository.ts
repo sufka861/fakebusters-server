@@ -45,6 +45,7 @@ async getOneByFilter(filter: any = {}): Promise<T | null> {
 
       async updateByFilter(id:any,params:any): Promise<UpdateResult> {
         return await this.collection.updateOne(id,params);
+
         }
 }
 

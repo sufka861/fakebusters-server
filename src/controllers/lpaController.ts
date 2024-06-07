@@ -44,15 +44,11 @@ const addResult: RequestHandler = async (req, res) => {
 };
 
 const editResultsByProjectid: RequestHandler = async (req, res) => {
-  console.log("INSIDE editResultsByProjectid");
   try {
     const {
       params: { file_id },
       body,
     } = req;
-    console.log("file_id", file_id);
-    console.log("body", body);
-
     const data = await updateResults({ file_id: file_id }, body);
     res.status(200).send(data);
   } catch (err: any) {

@@ -51,10 +51,6 @@ class GenericDal<T extends { _id?: ObjectId }> {
   }
 
   async updateByFilter(id: any, params: any): Promise<UpdateResult> {
-    console.log("INSIDE updateResults");
-    console.log("file_id", id);
-    console.log("params", params);
-    
     return await this.collection.updateOne(id, params);
   }
 }

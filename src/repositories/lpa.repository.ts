@@ -20,10 +20,6 @@ const deleteResults = async (filter: any ={}) => {
   };
 
   const updateResults = async (file_id: {}, params: {}) => {
-    console.log("INSIDE updateResults");
-    console.log("file_id", file_id);
-    console.log("params", params);
-    
     const updateParams = { $set: params };
     return await lpaModel.updateByFilter(file_id, updateParams);
   };

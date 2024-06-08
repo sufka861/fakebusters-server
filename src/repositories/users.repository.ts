@@ -1,7 +1,7 @@
 import { usersModel } from "../services/database.service";
 
 const getUsers = async () => {
-    console.log(await usersModel.getAll());
+    return await usersModel.getAll();
 };
 
 const getUserByFilter = async(filter: any) => {

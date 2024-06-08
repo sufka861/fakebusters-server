@@ -34,9 +34,6 @@ const updateUserById: RequestHandler = async (req: Request, res: Response) => {
     try {
         const {_id} = req.params;    
         const o_id = new ObjectId(_id);
-        console.log("o_id", o_id);
-        console.log("req.body", req.body);
-        
         const existingUser = await getUserByFilter({_id: o_id});
         let data;
         if (existingUser) {

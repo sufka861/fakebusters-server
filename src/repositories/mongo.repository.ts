@@ -47,7 +47,7 @@ class GenericDal<T extends { _id?: ObjectId }> {
   }
 
   async updateById(id: any, params: any): Promise<UpdateResult> {
-    return await this.collection.updateOne(id, params);
+    return await this.collection.updateOne({ _id: id }, params);
   }
 
   async updateByFilter(id: any, params: any): Promise<UpdateResult> {

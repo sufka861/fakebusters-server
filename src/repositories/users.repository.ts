@@ -18,4 +18,8 @@ const createUser = async (body: any) => {
 
 };
 
-export { getUsers, getUserByFilter, createUser,deleteUser };
+const updateUser = async (id: any, body: any) => {
+    return await usersModel.updateById(id, { $set: body });
+};
+
+export { getUsers, getUserByFilter, createUser, deleteUser, updateUser };

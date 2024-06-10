@@ -46,7 +46,7 @@ const getSuspectsByUser: RequestHandler = async (req, res) => {
     const allResults: any[] = [];
 
     for (const proj of projects) {
-      const key = proj; // The key is the file path in the bucket
+      const key = (proj as { fileName: string }).fileName; // The key is the file path in the bucket
       const results = await readCsvFileFromS3(bucketName, key);
       allResults.push(...results);
     }

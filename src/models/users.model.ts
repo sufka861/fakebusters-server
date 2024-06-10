@@ -5,6 +5,6 @@ export interface User {
   name: string;
   email: string;
   password: string;
-  project_id: string[];
+  project_id: Object[];
   default_vocabulary: ObjectId;
 }

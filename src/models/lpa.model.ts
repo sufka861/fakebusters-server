@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb";
 
 export interface Result {
-    _id?: ObjectId;  
+    _id?: ObjectId;
+    projectName: string;  
     account: number;    // number of accounts been processed
     freq: number;   // 
     initial_authors_count: number;   // total authors count from dataset 

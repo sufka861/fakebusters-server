@@ -1,10 +1,10 @@
 import express from "express";
-import { getSuspectsByUser } from "../controllers/suspectsController";
+import { getSuspects } from "../controllers/suspectsController";
 
 
 const suspectRouter = express.Router();
 
-suspectRouter.get("/:_id", getSuspectsByUser);
+suspectRouter.get("/:_id", getSuspects);
 
 
 

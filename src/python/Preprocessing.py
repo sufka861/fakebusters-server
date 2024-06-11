@@ -1,11 +1,13 @@
-import os
-import sys
-import re
 import json
-import pandas as pd
+import os
+import re
+import sys
+
 import nltk
+import pandas as pd
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
+
 
 def remove_links_and_usernames(text):
     return re.sub(r'https?://\S+|@\w+|\d+', '', text)
@@ -22,7 +24,7 @@ def preprocess_text(text, stop_words, is_dropping_links):
         text = remove_stop_words(text, stop_words)
     return text
 
-def process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, showTblholdSettings):
+def process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, showTblholdSettings, project_name):
     try:
         stop_words = set(vocabulary)
 
@@ -84,7 +86,8 @@ def process_and_analyze(file_paths, output_file_path, is_dropping_links, is_drop
             'freq': total_rows,
             'account': total_documents,
             'file_id': output_file_path,
-            'author_username': authors_with_enough_posts
+            'author_username': authors_with_enough_posts,
+            'project_name': project_name
         }
 
         result_json = json.dumps(result_dict, ensure_ascii=False, indent=4)
@@ -104,13 +107,13 @@ if __name__ == "__main__":
         is_dropping_punctuation = sys.argv[6].lower() == 'true'
         showTblholdSettings = sys.argv[7].lower() == 'true'
         vocabulary_file_path = sys.argv[8]
-        
+        project_name = sys.argv[9]
         with open(vocabulary_file_path, 'r', encoding='utf-8') as file:
             vocabulary_json = json.load(file)
         
         vocabulary = [item['name'] for item in vocabulary_json]
 
-        result_json = process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, showTblholdSettings)
+        result_json = process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, showTblholdSettings, project_name)
         print(result_json)
     except IndexError:
         print("Error: Missing required command-line arguments.")

@@ -51,7 +51,6 @@ const handleNewProject: RequestHandler = async (req: Request, res: Response) => 
 const handlePreprocessing: RequestHandler = async (req: Request, res: Response) => {
   const params = req.body;
   const metadata = { signature: String(params.signature) };
-
   if (!params.rowDataFileName) {
     console.error("rowDataFileName is missing");
     return res.status(400).send("rowDataFileName is required");
@@ -78,6 +77,7 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
       params.isDroppingPunctuation,
       params.showTblholdSettings,
       vocabularyFilePath,
+      params.projectName,
     ];
 
     console.log("Start running python script");

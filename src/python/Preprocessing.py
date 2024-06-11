@@ -18,10 +18,11 @@ def remove_stop_words(text, stop_words):
 def preprocess_text(text, stop_words, is_dropping_links):
     if is_dropping_links:
         text = remove_links_and_usernames(text)
-    text = remove_stop_words(text, stop_words)
+    if showTblholdSettings:
+        text = remove_stop_words(text, stop_words)
     return text
 
-def process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, top_value_words):
+def process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, showTblholdSettings):
     try:
         stop_words = set(vocabulary)
 
@@ -50,7 +51,7 @@ def process_and_analyze(file_paths, output_file_path, is_dropping_links, is_drop
         for author_index, text_vector in enumerate(X.toarray()):
             author = concatenated_texts_by_author.index[author_index]
             word_counts = list(zip(feature_names, text_vector))
-            if top_value_words:
+            if showTblholdSettings:
                 word_counts = sorted(word_counts, key=lambda x: x[1], reverse=True)[:word_threshold]
             for word, count in word_counts:
                 if count > 0:
@@ -108,9 +109,8 @@ if __name__ == "__main__":
             vocabulary_json = json.load(file)
         
         vocabulary = [item['name'] for item in vocabulary_json]
-        top_value_words = False  # As the boolean flag `top_value_words` was not provided
 
-        result_json = process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, top_value_words)
+        result_json = process_and_analyze(file_paths, output_file_path, is_dropping_links, is_dropping_punctuation, vocabulary, word_threshold, account_threshold, showTblholdSettings)
         print(result_json)
     except IndexError:
         print("Error: Missing required command-line arguments.")

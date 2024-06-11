@@ -1,4 +1,10 @@
-import { Collection, DeleteResult, MongoClient, ObjectId, UpdateResult } from "mongodb";
+import {
+  Collection,
+  DeleteResult,
+  MongoClient,
+  ObjectId,
+  UpdateResult,
+} from "mongodb";
 import { Filter } from "mongodb";
 
 class GenericDal<T extends { _id?: ObjectId }> {
@@ -10,11 +16,11 @@ class GenericDal<T extends { _id?: ObjectId }> {
     const db = this.client.db(process.env.DB_NAME);
     this.collection = db.collection<T>(collectionName);
     this.client.connect();
-    console.log(`connect to ${collectionName} collection in DB`)
+    console.log(`connect to ${collectionName} collection in DB`);
   }
 
   async getAll(): Promise<T[]> {
-      return (await this.collection.find({}).toArray()) as T[];
+    return (await this.collection.find({}).toArray()) as T[];
   }
 
   async getById(id: string): Promise<T | null> {
@@ -25,29 +31,28 @@ class GenericDal<T extends { _id?: ObjectId }> {
   async getByFilter(filter: any = {}): Promise<T[]> {
     const documents = await this.collection.find(filter).toArray();
     return documents as T[];
-}
-
-async getOneByFilter(filter: any = {}): Promise<T | null> {
-  return (await this.collection.findOne(filter)) as T;
-}
-  async create(document: any): Promise<T> {
-      const result = await this.collection.insertOne(document);
-      return { ...document, _id: result.insertedId };
   }
 
-  async deleteMany(filter:any= {}): Promise<DeleteResult> {
+  async getOneByFilter(filter: any = {}): Promise<T | null> {
+    return (await this.collection.findOne(filter)) as T;
+  }
+
+  async create(document: any): Promise<T> {
+    const result = await this.collection.insertOne(document);
+    return { ...document, _id: result.insertedId };
+  }
+
+  async deleteMany(filter: any = {}): Promise<DeleteResult> {
     return await this.collection.deleteMany(filter);
-    }
+  }
 
-    async updateById(id:any,params:any): Promise<UpdateResult> {
-      return await this.collection.updateOne(id,params);
-      }
+  async updateById(id: any, params: any): Promise<UpdateResult> {
+    return await this.collection.updateOne({ _id: id }, params);
+  }
 
-      async updateByFilter(id:any,params:any): Promise<UpdateResult> {
-        return await this.collection.updateOne(id,params);
-
-        }
+  async updateByFilter(id: any, params: any): Promise<UpdateResult> {
+    return await this.collection.updateOne(id, params);
+  }
 }
-
 
 export { GenericDal };

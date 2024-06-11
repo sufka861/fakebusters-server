@@ -2,34 +2,19 @@ import { GraphData } from '../models/graph.model';
 import { exec } from 'child_process';
 import { RequestHandler,Request,Response } from "express";
 import path from 'path';
-import { createGraph } from '../repositories/graph.repository';
+import { createGraph, deleteGraphs } from '../repositories/graph.repository';
 import { parse } from 'csv-parse';
 
 
-function fetchData(req:any, res: any) {
-  const graphData = {
-    nodes: [
-      { id: 1, label: "1", title: "node 1 tooltip text" },
-      { id: 2, label: "2", title: "node 2 tooltip text" },
-      { id: 3, label: "3", title: "node 3 tooltip text" },
-      { id: 4, label: "4", title: "node 4 tooltip text" },
-      { id: 5, label: "5", title: "node 5 tooltip text" },
-      { id: 6, label: "6", title: "node 6 tooltip text" }
-    ],
-    edges: [
-      { from: 1, to: 2 },
-      { from: 1, to: 3 },
-      { from: 2, to: 4 },
-      { from: 2, to: 5 },
-      { from: 2, to: 6 },
-      { from: 6, to: 1 },
-      { from: 5, to: 6 }
-    ]
-  };
-  console.log(graphData)
-  res.json(graphData);
-};
 
+const removeGraphs: RequestHandler = async (req, res) => {
+  try {
+      await deleteGraphs(); 
+      res.status(200).send("All graph results have been deleted");
+  } catch (err) {
+      res.status(400).send(err);
+  }
+};
 
 const handleFile: RequestHandler = async (req: Request, res: Response) => {
   try {
@@ -63,7 +48,8 @@ const handleFile: RequestHandler = async (req: Request, res: Response) => {
 
       const graphData: GraphData = { nodes, edges, date_created: new Date() };
       try {
-          await createGraph(graphData);
+          const new_graph = await createGraph(graphData);
+          graphData._id = new_graph._id
           return res.json(graphData);
       } catch (err) {
           console.error('Error saving graph data:', err);
@@ -95,5 +81,5 @@ function callPythonFunction(req: any,res:any) {
 }
 
 // Call the function with an example input
-export {callPythonFunction,fetchData,handleFile}
+export {callPythonFunction,handleFile,removeGraphs}
 

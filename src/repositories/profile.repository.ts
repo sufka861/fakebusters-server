@@ -9,7 +9,6 @@ const getProfileById = async (id: string) => {
 };
 
 const getProfileByFilter = async (filter: any) => {
-  console.log(filter)
   return await profileModel.getByFilter(filter);
 };
 

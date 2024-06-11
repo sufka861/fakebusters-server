@@ -6,5 +6,6 @@ export interface User {
   email: string;
   password: string;
   project_id: string[];
+  graph_id: string[];
   default_vocabulary: ObjectId;
 }

@@ -3,11 +3,11 @@ import { getUserByFilter } from "../repositories/users.repository";
 import { ObjectId } from "mongodb";
 import AWS from "aws-sdk";
 import csv from 'csv-parser';
+import { getGraphById } from "../repositories/graph.repository";
 
-type Result = {
-  "Corpus 1": string,
-  "Corpus 2": string,
-  "value": number
+type AverageResult = {
+  "corpus": string,
+  "averageValue": number
 };
 
 
@@ -64,10 +64,9 @@ const getSuspects: RequestHandler = async (req, res) => {
     res.status(400).send(err.message);
   }
 };
-
-function removeDuplicates(allResults: Result[]): Result[] {
+function removeDuplicates<T extends { [key: string]: any }>(allResults: T[]): T[] {
   const seenPairs = new Set<string>();
-  const uniqueResults: Result[] = [];
+  const uniqueResults: T[] = [];
 
   for (const result of allResults) {
       const { "Corpus 1": corpus1, "Corpus 2": corpus2 } = result;
@@ -78,19 +77,30 @@ function removeDuplicates(allResults: Result[]): Result[] {
           uniqueResults.push(result);
       }
   }
-  uniqueResults.sort((a, b) => a.value - b.value);
   return uniqueResults;
 }
 
-type AverageResult = {
-  "corpus": string,
-  "averageValue": number
-};
+function removeDuplicatesGraphs<T extends { [key: string]: any }>(allResults: T[]): T[] {
+  const seenPairs = new Set<string>();
+  const uniqueResults: T[] = [];
 
-function getSingleSuspects(allResults: Result[]): AverageResult[] {
+  for (const result of allResults) {
+      const { "node1": corpus1, "node2": corpus2 } = result;
+      const sortedPair = [corpus1, corpus2].sort().join('-');
+
+      if (corpus1 !== corpus2 && !seenPairs.has(sortedPair)) {
+          seenPairs.add(sortedPair);
+          uniqueResults.push(result);
+      }
+  }
+  uniqueResults.sort((a, b) => b.similarity - a.similarity);
+  return uniqueResults;
+}
+
+
+function getSingleSuspects<T extends { [key: string]: any }>(allResults: T[]): AverageResult[] {
   const scoreSum: Record<string, number> = {};
   const occurrenceCount: Record<string, number> = {};
-
   for (const result of allResults) {
     const corpus1 = result["Corpus 1"];
     const corpus2 = result["Corpus 2"];
@@ -126,4 +136,69 @@ function getSingleSuspects(allResults: Result[]): AverageResult[] {
 
   return averageScores;
 }
-export { getSuspects };
+
+
+function getSingleSuspectsGraphs<T extends { [key: string]: any }>(allResults: T[]): AverageResult[] {
+  const scoreSum: Record<string, number> = {};
+  const occurrenceCount: Record<string, number> = {};
+  for (const result of allResults) {
+    const corpus1 = result["node1"];
+    const corpus2 = result["node2"];
+    const value = parseFloat(result.similarity.toString());
+
+    // Update sum and count for Corpus 1
+    if (!(corpus1 in scoreSum)) {
+      scoreSum[corpus1] = 0;
+      occurrenceCount[corpus1] = 0;
+    }
+    scoreSum[corpus1] += value;
+    occurrenceCount[corpus1] += 1;
+
+    // Update sum and count for Corpus 2
+    if (!(corpus2 in scoreSum)) {
+      scoreSum[corpus2] = 0;
+      occurrenceCount[corpus2] = 0;
+    }
+    scoreSum[corpus2] += value;
+    occurrenceCount[corpus2] += 1;
+  }
+
+  const averageScores: AverageResult[] = [];
+  for (const corpus in scoreSum) {
+    averageScores.push({
+      corpus,
+      averageValue: scoreSum[corpus] / occurrenceCount[corpus]
+    });
+  }
+
+  averageScores.sort((a, b) => b.averageValue - a.averageValue);
+
+  return averageScores;
+}
+
+
+
+const getStructureSuspects: RequestHandler = async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const o_id = new ObjectId(_id);
+    const data = await getUserByFilter({ _id: o_id });
+    const projects = data[0].graph_id;
+    const allResults: any[] = [];
+    for (const proj of projects) {
+      const graph = await getGraphById(proj);
+      if (graph){
+      const results = graph.adj_results;
+      allResults.push(...results);
+    }
+  }  
+    const uniqueResults = removeDuplicatesGraphs(allResults);
+    const singlesResults = getSingleSuspectsGraphs(allResults)
+    res.status(200).send({pairs: uniqueResults, singles: singlesResults});
+  } catch (err: any) {
+    res.status(400).send(err.message);
+  }
+};
+
+
+export { getSuspects,getStructureSuspects };

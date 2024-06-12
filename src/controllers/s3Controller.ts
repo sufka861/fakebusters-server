@@ -80,6 +80,7 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
       params.projectName,
     ];
 
+    console.log(pythonParams)
     console.log("Start running python script");
 
     const output = await runPythonScriptPreprocessing(scriptPath, pythonParams);

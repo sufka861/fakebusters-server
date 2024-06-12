@@ -1,7 +1,7 @@
 import { usersModel } from "../services/database.service";
 
 const getUsers = async () => {
-    console.log(await usersModel.getAll());
+    return await usersModel.getAll();
 };
 
 const getUserByFilter = async(filter: any) => {
@@ -17,4 +17,8 @@ const createUser = async (body: any) => {
 
 };
 
-export { getUsers, getUserByFilter, createUser,deleteUser };
+const updateUser = async (id: any, body: any) => {
+    return await usersModel.updateById(id, { $set: body });
+};
+
+export { getUsers, getUserByFilter, createUser, deleteUser, updateUser };

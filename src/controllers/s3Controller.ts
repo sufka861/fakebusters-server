@@ -72,15 +72,16 @@ const handlePreprocessing: RequestHandler = async (req: Request, res: Response) 
     const pythonParams = [
       filePaths,
       outputFilePath,
-      params.account_threshold,
-      params.wordThreshold,
-      params.isDroppingLinks,
-      params.isDroppingPunctuation,
-      params.showTblholdSettings,
+      params.account_threshold.toString(),
+      params.wordThreshold.toString(),
+      params.isDroppingLinks.toString().toLowerCase(),
+      params.isDroppingPunctuation.toString().toLowerCase(),
+      params.showTblholdSettings.toString().toLowerCase(),
       vocabularyFilePath,
     ];
 
-    console.log(pythonParams)
+    console.log("Python script path:", scriptPath);
+    console.log("Python script arguments:", pythonParams);
     console.log("Start running python script");
 
     const output = await runPythonScriptPreprocessing(scriptPath, pythonParams);

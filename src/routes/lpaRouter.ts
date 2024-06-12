@@ -1,13 +1,13 @@
 import express from "express";
-import {removeResults, getAllResult,getResultsByProjectId,addResult} from "../controllers/lpaController"
+import {removeResults, getAllResult,getResultsByProjectId,addResult, editResultsByProjectid} from "../controllers/lpaController"
 
 
-const usersRouter = express.Router();
+const lpaRouter = express.Router();
 
-usersRouter.get("/", getAllResult);
-usersRouter.get("/:project_id", getResultsByProjectId);
-usersRouter.post("/", addResult);
-usersRouter.delete("/", removeResults);
+lpaRouter.get("/", getAllResult);
+lpaRouter.get("/:file_id", getResultsByProjectId);
+lpaRouter.post("/", addResult);
+lpaRouter.delete("/", removeResults);
+lpaRouter.put('/:file_id', editResultsByProjectid);
 
-
-export default usersRouter;
+export default lpaRouter;

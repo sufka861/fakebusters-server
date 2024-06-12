@@ -21,7 +21,10 @@ const getAllProfiles: RequestHandler = async (req: Request, res: Response) => {
 const getProfileByUsername: RequestHandler = async (req: Request, res: Response) => {
     try {
         const {username} = req.query;
-        const data = await getProfileByFilter({ 'data.username': String(username)});
+        let data = await getProfileByFilter({ 'data.username': String(username)});
+        if (data.length <1){
+            data = await getProfileByFilter({ 'errors.value': String(username)});
+        }
         res.status(200).send(data);
     } catch (err: any) { 
         res.status(400).send(err.message);

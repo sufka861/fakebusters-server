@@ -9,6 +9,7 @@ const getResultById = async ( id: string) => {
 };
 
 const createResult = async (body: any) => {
+  body.date_created= new Date();
     return await lpaModel.create(body);
 };
 const deleteResults = async (filter: any ={}) => {
@@ -18,5 +19,10 @@ const deleteResults = async (filter: any ={}) => {
     return await lpaModel.getByFilter(filter);
   };
 
-export { getResults, getResultById, createResult,deleteResults,getResultsByFilter };
+  const updateResults = async (file_id: {}, params: {}) => {
+    const updateParams = { $set: params };
+    return await lpaModel.updateByFilter(file_id, updateParams);
+  };
+
+export { getResults, getResultById, createResult,deleteResults,getResultsByFilter,updateResults };
 

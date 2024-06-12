@@ -1,6 +1,6 @@
 
 import { RequestHandler } from "express";
-import { createResult, deleteResults, getResults,getResultsByFilter } from "../repositories/lpa.repository";
+import { createResult, deleteResults, getResults,getResultsByFilter,updateResults } from "../repositories/lpa.repository";
 
 const removeResults: RequestHandler = async (req, res) => {
   try {
@@ -13,7 +13,6 @@ const removeResults: RequestHandler = async (req, res) => {
 
 const getAllResult: RequestHandler = async (req, res) => {
     try {
-      console.log("all result")
       const resultList = await getResults(); 
       res.status(200).send(resultList)
     } catch (err) {
@@ -24,13 +23,14 @@ const getAllResult: RequestHandler = async (req, res) => {
   
   const getResultsByProjectId: RequestHandler = async (req, res) => {
     try {
-        const {project_id} = req.params;    
-        const data = await getResultsByFilter({ project_id: project_id});
+        const {file_id} = req.params;    
+        const data = await getResultsByFilter({ file_id: file_id});
         res.status(200).send(data);
     } catch (err: any) { 
         res.status(400).send(err.message);
     }
 };
+
 
 const addResult: RequestHandler = async (req, res) => {
   try {
@@ -42,7 +42,20 @@ const addResult: RequestHandler = async (req, res) => {
   }
 };
 
+const editResultsByProjectid: RequestHandler = async (req, res) => {
+  try {
+    const {
+      params: { file_id },
+      body,
+    } = req;
+    const data = await updateResults({ file_id: file_id }, body);
+    res.status(200).send(data);
+  } catch (err: any) {
+    res.status(400).send(err.message);
+  }
+};
 
-  export { getAllResult ,removeResults,getResultsByProjectId,addResult};
+
+  export { getAllResult ,removeResults,getResultsByProjectId,addResult,editResultsByProjectid};
 
 

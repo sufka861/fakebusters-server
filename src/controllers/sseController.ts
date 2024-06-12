@@ -1,6 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import AWS from "aws-sdk";
 import csv from "csv-parser";
+import { log } from "console";
 
 AWS.config.update({
   accessKeyId: process.env.ACCESS_AWS_S3,
@@ -25,9 +26,7 @@ interface SockpuppetDetectionChartProps {
   };
 }
 
-const calculateIdentityLikelihood = (
-  records: CsvRecord[],
-): SockpuppetDetectionChartProps => {
+const calculateIdentityLikelihood = (records: CsvRecord[],): SockpuppetDetectionChartProps => {
   let likelihoodCategories = {
     VeryLowLikelihood: 0,
     LowLikelihood: 0,
@@ -47,7 +46,8 @@ const calculateIdentityLikelihood = (
       likelihoodCategories.VeryLowLikelihood++;
     }
   });
-
+  console.log("*** calculateIdentityLikelihood - likelihoodCategories ***:", likelihoodCategories);
+  
   return { data: likelihoodCategories };
 };
 

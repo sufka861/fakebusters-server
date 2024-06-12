@@ -1,6 +1,6 @@
 import { GraphData } from '../models/graph.model';
 import { RequestHandler,Request,Response } from "express";
-import { createGraph, deleteGraphs,updateGraph } from '../repositories/graph.repository';
+import { createGraph, deleteGraphs,getGraphById,updateGraph } from '../repositories/graph.repository';
 import { parse } from 'csv-parse';
 import { ObjectId } from 'mongodb';
 
@@ -77,7 +77,19 @@ const editGraph: RequestHandler = async (req, res) => {
     }
   };
 
-
-export {handleFile,removeGraphs,editGraph}
+  const getGraph: RequestHandler = async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const { _id } = req.params;
+      const data = await getGraphById(_id);
+      res.status(200).send(data);
+    } catch (err: any) {
+      res.status(400).send(err.message);
+    }
+  };
+  
+export {handleFile,removeGraphs,editGraph,getGraph}
 
 

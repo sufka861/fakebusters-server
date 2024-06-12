@@ -14,12 +14,18 @@ const getGraphByFilter = async (filter: any) => {
 
 
 const createGraph= async (body: any) => {
+  console.log(body)
   return await GraphDataModel.create(body);
 };
 
 const deleteGraphs = async (filter: any = {}) => {
   return await GraphDataModel.deleteMany(filter);
 };
+const updateGraph = async (_id: {}, params: {}) => {
+  const updateParams = { $set: params };
+  return await GraphDataModel.updateByFilter(_id, updateParams);
+};
+
 
 
 export {
@@ -27,5 +33,6 @@ export {
   getGraphById,
   getGraphByFilter,
   createGraph,
-  deleteGraphs
+  deleteGraphs,
+  updateGraph
 };

@@ -1,9 +1,8 @@
 import { GraphData } from '../models/graph.model';
-import { exec } from 'child_process';
 import { RequestHandler,Request,Response } from "express";
-import path from 'path';
-import { createGraph, deleteGraphs } from '../repositories/graph.repository';
+import { createGraph, deleteGraphs,updateGraph } from '../repositories/graph.repository';
 import { parse } from 'csv-parse';
+import { ObjectId } from 'mongodb';
 
 
 
@@ -22,13 +21,14 @@ const handleFile: RequestHandler = async (req: Request, res: Response) => {
           return res.status(400).send("No files uploaded.");
       }
       const fileBuffer = req.file.buffer; // Access the file buffer
-      
       const parser = parse(fileBuffer, { columns: true });
-
       const nodesMap: { [key: string]: number } = {};
       const nodes: Array<{ id: number; label: string; title: string }> = [];
       const edges: Array<{ from: string; to: string }> = [];
       let currentId = 1;
+      const adj_results =[{node1:"",node2:"",similarity:0}]
+      const file_name = "";
+      const project_name="";
 
       for await (const record of parser) {
           const { id, target_user_id } = record;
@@ -46,7 +46,8 @@ const handleFile: RequestHandler = async (req: Request, res: Response) => {
           edges.push({ from: id, to: target_user_id });
       }
 
-      const graphData: GraphData = { nodes, edges, date_created: new Date() };
+      const graphData: GraphData = { nodes, edges, date_created: new Date(),adj_results, file_name,project_name };
+      
       try {
           const new_graph = await createGraph(graphData);
           graphData._id = new_graph._id
@@ -62,24 +63,21 @@ const handleFile: RequestHandler = async (req: Request, res: Response) => {
 };
 
 
-function callPythonFunction(req: any,res:any) {
-    // Execute the Python script with the input data
-    const pythonScript = path.resolve(process.cwd(), 'src', 'python', "Structure.py");
-    exec(`python ${pythonScript}`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error executing Python script: ${error}`);
-            return;
-        }
-        if (stderr) {
-            console.error(`Python script error: ${stderr}`);
-            return;
-        }
-        // Parse the JSON output from the Python script
-        const graph_image = path.resolve(process.cwd(), "src", "python", "graphs", "undirected_graph.png");
-        res.sendFile(graph_image);
-    });
-}
+const editGraph: RequestHandler = async (req, res) => {
+    try {
+      const {
+        params: { _id },
+        body,
+      } = req;
+      const o_id = new ObjectId(_id);
+      const data = await updateGraph({ _id: o_id }, body);
+      res.status(200).send(data);
+    } catch (err: any) {
+      res.status(400).send(err.message);
+    }
+  };
 
-// Call the function with an example input
-export {callPythonFunction,handleFile,removeGraphs}
+
+export {handleFile,removeGraphs,editGraph}
+
 

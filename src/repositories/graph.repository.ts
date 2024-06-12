@@ -14,7 +14,6 @@ const getGraphByFilter = async (filter: any) => {
 
 
 const createGraph= async (body: any) => {
-  console.log(body)
   return await GraphDataModel.create(body);
 };
 

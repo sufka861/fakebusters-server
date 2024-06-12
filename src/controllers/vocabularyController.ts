@@ -128,7 +128,6 @@ const editVocabulary: RequestHandler = async (req: Request, res: Response) => {
       body,
     } = req;
     const o_id = new ObjectId(id);
-    console.log(o_id)
     const data = await updateVocabulary({ _id: o_id }, body);
     res.status(200).send(data);
   } catch (err: any) {

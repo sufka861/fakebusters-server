@@ -13,7 +13,7 @@ const s3 = new AWS.S3();
 interface CsvRecord {
   "Corpus 1": string;
   "Corpus 2": string;
-  Value: string;
+  value: string;
 }
 
 interface SockpuppetDetectionChartProps {
@@ -34,7 +34,7 @@ const calculateIdentityLikelihood = (records: CsvRecord[],): SockpuppetDetection
   };
 
   records.forEach((record) => {
-    const value = parseFloat(record.Value);
+    const value = parseFloat(record.value);
     if (value < 0.25) {
       likelihoodCategories.HighLikelihood++;
     } else if (value < 0.5) {

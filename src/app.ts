@@ -20,8 +20,9 @@ import suspectRouter from './routes/suspectsRouter'
 dotenv.config();
 
 const app: Express = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 const logPath = path.join(__dirname, "../logs", "http.log");
 app.use(
   logger(":date --> :method :url :status :response-time ms", {

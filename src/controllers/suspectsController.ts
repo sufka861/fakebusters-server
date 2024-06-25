@@ -93,8 +93,8 @@ function removeDuplicatesGraphs<T extends { [key: string]: any }>(allResults: T[
           uniqueResults.push(result);
       }
   }
-  uniqueResults.sort((a, b) => b.similarity - a.similarity);
-  return uniqueResults;
+  const top50Results = uniqueResults.sort((a, b) => b.similarity - a.similarity).slice(0, 50);
+  return top50Results;
 }
 
 
